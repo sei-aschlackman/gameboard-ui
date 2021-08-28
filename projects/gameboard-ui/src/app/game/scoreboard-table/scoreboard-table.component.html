@@ -2,7 +2,7 @@
 <!-- Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information. -->
 
 <table class="table table-striped mt-2 text-center">
-  <tbody>
+  <tbody *ngIf="scores$ | async as scores; else loading">
     <tr>
       <td>Rank</td>
       <td>Sponsor</td>
@@ -12,8 +12,8 @@
       <td>Completes</td>
       <td>Partials</td>
     </tr>
-    <ng-container *ngIf="scores$ | async as scores; else loading">
-      <tr *ngFor="let s of scores; trackBy:trackById">
+    <ng-container *ngFor="let s of scores; trackBy:trackById">
+      <tr *ngIf="s.score > 0">
         <td>{{s.rank}}</td>
         <td>{{s.sponsor}}</td>
         <td>
@@ -30,6 +30,15 @@
 </table>
 
 <ng-template #loading>
+  <tr>
+    <td>Rank</td>
+    <td>Sponsor</td>
+    <td>Name</td>
+    <td>Score</td>
+    <td>Duration</td>
+    <td>Completes</td>
+    <td>Partials</td>
+  </tr>
   <tr>
     <td colspan="7" class="text-center">
       <app-spinner></app-spinner>
