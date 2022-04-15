@@ -9,30 +9,116 @@
   <fa-icon [icon]="faSync"></fa-icon>
   <span>Refresh</span>
 </button>
-<h4>Player Map</h4>
+<h2>Observe Challenges</h2>
+<div class="row">
+  <div class="input-group mt-2 mb-3 col-5">
+    <div class="input-group-prepend">
+      <span id="search-label" class="input-group-text">Search</span>
+    </div>
+    <input id="search-input" type="search" class="form-control" [(ngModel)]="term"
+      aria-label="search term" aria-describedby="search-label" placeholder="term">
+  </div>
+  <div class="input-group mt-2 mb-0 ml-auto col-5">
+    <div id="feedbackType-input" #selectType class="btn-group mb-2 ml-auto" btnRadioGroup name="sortType" tabindex="0"
+    [(ngModel)]="sort" [ngModelOptions]="{updateOn: 'change'}">
+    <label class="btn btn-outline-dark btn-md text-white" btnRadio="byName">
+      <fa-icon [icon]="faSortAlphaDown"></fa-icon>
+      Name
+    </label>
+    <label class="btn btn-outline-dark btn-md text-white" btnRadio="byRank">
+      <fa-icon [icon]="faSortAmountDown"></fa-icon>
+      Rank
+    </label>
+    </div>
+  </div>
+</div> <!-- end row for search and filtering -->
 
-<table class="table table-striped">
-  <thead>
-    <tr>
-      <th>Player</th>
-      <th>User</th>
-      <th>Challenge</th>
-      <th>Console</th>
-    </tr>
-  </thead>
-  <tbody>
-    <ng-container *ngIf="fetch$ | async as players">
-      <tr *ngFor="let p of players">
-        <td>{{p.playerName}}</td>
-        <td>{{p.userName}}</td>
-        <td>{{p.challengeName}}</td>
-        <td>
-          <button *ngIf="!!p.vmName" class="btn btn-outline-success btn-sm" (click)="go(p)">
-            <fa-icon [icon]="faTv"></fa-icon>
-            <span>{{p.vmName}}</span>
-          </button>
-        </td>
-      </tr>
+<!-- Table of challenges -->
+<div class="bg-dark">
+  <div class="row mx-0 py-2">
+    <h4 class="col-2 text-center">Player/Team {{ ''}}</h4>
+    <h4 class="col-2 text-center">Game Score</h4>
+    <h4 class="col-2 text-center">Challenge</h4>
+    <h4 class="col-2 text-center">Duration</h4>
+    <h4 class="col-2 text-center p-0">Challenge Score</h4>
+    <h4 class="col-2 text-right">Consoles</h4>
+  </div>
+  <div class="d-flex flex-column">
+    <ng-container *ngIf="table.size && {actors: fetchActors$ | async} as updates">
+      <div *ngFor="let row of table | keyvalue: sortByName; trackBy: trackByChallengeId;" [hidden]="!(row.value | matchesterm:term:'playerName':'name')" 
+        [ngStyle]="{'order': row.value.gameRank| observeorder:row.value.pinned:sort:maxRank }" [class]="row.value.pinned ? 'pinned' : ''"> 
+        <div class="row mx-0 border-top border-light py-2">
+          <div class="col-2 align-self-center pl-1">
+            <button class="mr-1 btn btn-sm border-0" [class]="row.value.pinned ?  'btn-outline-success' : 'btn-outline-light'" 
+              (click)="togglePinRow(row.value)">
+              <fa-icon class="pin-icon" [icon]="faAngleDoubleUp" [rotate]="row.value.pinned ? 90 : undefined"></fa-icon>
+            </button>
+            <span>{{row.value.playerName}}</span>
+          </div>
+          <div class="col-2 align-self-center text-center">{{row.value.gameScore | number}} {{""}}</div>
+          <div class="col-2 align-self-center text-center">{{row.value.name}}</div>
+          <div class="col-2 align-self-center text-center">{{row.value.duration | clock }}</div>
+          <div class="col-2 align-self-center text-center">{{row.value.challengeScore | number}}</div>
+          <div class="col-2 align-self-center text-right">
+            <button *ngIf="row.value.consoles?.length" class="btn btn-sm" [class]="row.value.expanded ? 'btn-success' : 'btn-outline-success' "(click)="toggleShowConsoles(row.value)">
+              <fa-icon [icon]="faGrid"></fa-icon>
+            </button>
+          </div>
+        </div> <!-- end main for a challenge -->
+        <ng-container *ngIf="row.value.expanded && (row.value | matchesterm:term:'playerName':'name')">
+          <div class="row mx-0 mt-1">
+            <ng-container *ngFor="let vm of row.value.consoles; let i = index;">
+              <div *ngIf="!vm.minimized" class="p-2 vm-console" [class]="vm.fullWidth ? 'col-12' : 'col-6'">
+                <div class="rounded border border-success">
+                  <div class="mt-1 ml-1 row mx-0 px-0">
+                    <div class="col-4 m-0 p-0 text-left">
+                      <ng-container *ngIf="updates.actors?.get(row.value.id+'#'+vm.name) as activeUsers">
+                        <div *ngFor="let username of activeUsers" class="m-0 p-0 align-self-center" [class]="i != 300 ? 'text-success' : 'text-black'">
+                          <fa-icon class="px-2 py-1" [icon]="faUser"></fa-icon> 
+                          <span class="m-1 text-break">{{username}}</span>
+                        </div>
+                      </ng-container>
+                    </div>
+                    <div class="col-4 mx-0 px-0 text-center align-self-center">
+                      <span class="m-1 text-success text-break">{{vm.name}}</span>
+                      <button class="btn btn-outline-success btn-sm px-2 py-1 border-0" (click)="go(vm)">
+                        <fa-icon [icon]="faExternalLinkAlt"></fa-icon>
+                      </button>
+                    </div>
+                    <div class="col-4 mx-0 px-0 text-right">
+                      <button class="btn btn-outline-success btn-sm px-2 py-1 border-0 ml-1" (click)="toggleMinimizeVM(vm)">
+                        <fa-icon [icon]="faMinusSquare"></fa-icon>
+                      </button>
+                      <button class="btn btn-outline-success btn-sm px-2 py-1 border-0 mr-1" (click)="toggleFullWidthVM(vm)">
+                        <fa-icon [icon]="vm.fullWidth ? faCompressAlt : faExpandAlt"></fa-icon>
+                      </button>
+                    </div>
+                  </div> <!-- end console header -->
+                  <div class="iframe-wrapper" style="padding: 0px;">
+                    <iframe class="rounded-bottom w-100 h-100" frameborder="0"
+                      [src]="vm | safeurl: mksHost">
+                    </iframe>
+                  </div> <!-- end iframe wrapper -->
+                </div>
+              </div>
+            </ng-container>
+          </div> <!-- end row for console grid -->
+          <div class="mx-0 mb-2 d-flex flex-wrap">
+            <ng-container *ngFor="let vm of row.value.consoles; index as i">
+              <div *ngIf="vm.minimized" class="m-0 p-2">
+                <button class="btn btn-outline-success btn-sm p-2 w-100" (click)="toggleMinimizeVM(vm)">
+                  <div *ngIf="updates.actors?.get(row.value.id+'#'+vm.name)?.length as userCount" class="float-left">
+                    <fa-icon [icon]="faUser" ></fa-icon>
+                    <span>{{userCount}}</span>
+                  </div>
+                  <span class="mx-3">{{vm.name}}</span>
+                  <fa-icon [icon]="faPlusSquare" class="float-right"></fa-icon>
+                </button>
+              </div>
+            </ng-container>
+          </div> <!-- end row for minimized list -->
+        </ng-container> <!-- end expanded section of row -->
+      </div>
     </ng-container>
-  </tbody>
-</table>
+  </div>
+</div> <!-- end table of challenges -->

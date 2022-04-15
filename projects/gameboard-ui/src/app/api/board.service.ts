@@ -6,7 +6,7 @@ import { Injectable } from '@angular/core';
 import { Observable, scheduled } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { ConfigService } from '../utility/config.service';
-import { BoardGame, BoardPlayer, BoardSpec, Challenge, ChallengeGate, ChallengeResult, ChallengeSummary, ChallengeView, ChangedChallenge, ConsoleActor, GameState, NewChallenge, SectionSubmission, VmConsole } from './board-models';
+import { BoardGame, BoardPlayer, BoardSpec, Challenge, ChallengeGate, ChallengeResult, ChallengeSummary, ChallengeView, ChangedChallenge, ConsoleActor, GameState, NewChallenge, ObserveChallenge, SectionSubmission, VmConsole } from './board-models';
 import { TimeWindow } from './player-models';
 
 @Injectable({
@@ -61,8 +61,13 @@ export class BoardService {
   public audit(id: string): Observable<any> {
     return this.http.get<any>(`${this.url}/challenge/${id}/audit`);
   }
-  public actormap(gid: string): Observable<ConsoleActor[]> {
-    return this.http.get<ConsoleActor[]>(`${this.url}/challenge/consoles`, { params: {gid}});
+  public consoles(gid: string): Observable<ObserveChallenge[]> {
+    return this.http.get<ObserveChallenge[]>(`${this.url}/challenge/consoles`, { params: {gid}});
+  }
+  public consoleActors(gid: string): Observable<Map<string, string[]>> {
+    return this.http.get<object>(`${this.url}/challenge/consoleactors`, { params: {gid}}).pipe(
+      map(data => new Map(Object.entries(data))) // create Map() from returned dictionary
+    );
   }
 
   private transform(b: BoardPlayer): BoardPlayer {

@@ -5,7 +5,7 @@ import {
   Component, OnInit, ViewChild, AfterViewInit,
   ElementRef, Input, Injector, HostListener, OnDestroy, Renderer2
 } from '@angular/core';
-import { catchError, debounceTime, map, distinctUntilChanged, tap, finalize, switchMap } from 'rxjs/operators';
+import { catchError, debounceTime, map, distinctUntilChanged, tap, finalize, switchMap, filter } from 'rxjs/operators';
 import { throwError as ObservableThrower, fromEvent, Subscription, timer, Observable, of, Subject } from 'rxjs';
 import { Title } from '@angular/platform-browser';
 import { MockConsoleService } from './services/mock-console.service';
@@ -96,6 +96,10 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
 
     if (!!this.request?.name) {
       this.titleSvc.setTitle(`console: ${this.request.name}`);
+    }
+
+    if (!!this.request.observer) {
+      this.showCog = false;
     }
 
     setTimeout(() => this.reload(), 1);
@@ -281,6 +285,7 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
     // this.hotspot.x = window.innerWidth - this.hotspot.w;
     this.subs.push(
       fromEvent<MouseEvent>(document, 'mousemove').pipe(
+        filter(_ => !this.request.observer),
         tap((e: MouseEvent) => {
           if (this.showTools && e.clientX > 400) {
             this.showTools = false;
