@@ -10,7 +10,6 @@ import { debounceTime, tap, switchMap } from 'rxjs/operators';
 import { ObserveChallenge, ObserveVM } from '../../api/board-models';
 import { BoardService } from '../../api/board.service';
 import { ConfigService } from '../../utility/config.service';
-import { environment } from 'projects/gameboard-ui/src/environments/environment';
 @Component({
   selector: 'app-console-observer',
   templateUrl: './console-observer.component.html',
@@ -22,7 +21,7 @@ export class ConsoleObserverComponent implements OnInit, OnDestroy {
   fetchActors$: Observable<Map<string, string[]>>; // stream updates of mapping users to consoles
   tableData: Subscription; // subscribe to stream of new data to update table map
   gid = '';
-  mksHost: string = environment.settings.mkshost; // host url for mks console viewer
+  mksHost: string; // host url for mks console viewer
   sort: string = "byName"; // default sort method, other is "byRank"
   term: string = ""; // search term to filter by
   maxRank: number = 1;
@@ -44,6 +43,7 @@ export class ConsoleObserverComponent implements OnInit, OnDestroy {
     private api: BoardService,
     private conf: ConfigService
   ) {
+    this.mksHost = conf.mkshost;
     this.tableData = combineLatest([
       route.params,
       this.refresh$,
