@@ -11,7 +11,7 @@ import { Title } from '@angular/platform-browser';
 import { MockConsoleService } from './services/mock-console.service';
 import { WmksConsoleService } from './services/wmks-console.service';
 import { ConsoleService } from './services/console.service';
-import { ConsolePresence, ConsoleRequest, ConsoleSummary } from '../api.models';
+import { ConsoleActor, ConsolePresence, ConsoleRequest, ConsoleSummary } from '../api.models';
 import { ApiService } from '../api.service';
 import { ClipboardService } from '../clipboard.service';
 import { HubService } from '../hub.service';
@@ -102,7 +102,22 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
       this.showCog = false;
     }
 
-    setTimeout(() => this.reload(), 1);
+    if (!!this.request.observer && !!this.request.userId) {
+      timer(0, 10_000).pipe(
+        switchMap(a => this.api.findConsole(this.request.userId!))
+      ).subscribe(
+        (console: ConsoleActor) => {
+          if (this.request.sessionId != console.challengeId || this.request.name != console.vmName) {
+            this.request.sessionId = console.challengeId;
+            this.request.name = console.vmName;
+            this.titleSvc.setTitle(`console: ${console.vmName}`);
+            this.reload();
+          }
+        }
+      );
+    } else {
+      setTimeout(() => this.reload(), 1);
+    }
     // TODO: restore audience hub
     // setTimeout(() => this.hubSvc.init(this.request), 100);
 
