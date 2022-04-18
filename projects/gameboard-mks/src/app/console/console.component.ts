@@ -312,12 +312,15 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
 
   @HostListener('window:focus', ['$event'])
   onFocus(): void {
-    this.api.focus(this.request);
+    if (!this.request.observer) {
+      this.api.focus(this.request).subscribe();
+    }
   }
 
   @HostListener('window:blur', ['$event'])
   onBlur(): void {
-    this.api.blur(this.request);
+    // don't set actor map on blur
+    // this.api.blur(this.request);
   }
 
   @HostListener('document:mouseup', ['$event'])
