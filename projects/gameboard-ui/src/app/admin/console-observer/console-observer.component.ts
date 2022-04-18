@@ -20,10 +20,11 @@ export class ConsoleObserverComponent implements OnInit, OnDestroy {
   table: Map<string, ObserveChallenge> = new Map<string, ObserveChallenge>(); // table of player challenges to display
   fetchActors$: Observable<Map<string, string[]>>; // stream updates of mapping users to consoles
   tableData: Subscription; // subscribe to stream of new data to update table map
+  typing$ = new BehaviorSubject<string>(""); // search term typing event
+  term$: Observable<string>; // search term to filter by
   gid = '';
   mksHost: string; // host url for mks console viewer
   sort: string = "byName"; // default sort method, other is "byRank"
-  term: string = ""; // search term to filter by
   maxRank: number = 1;
   faArrowLeft = faArrowLeft;
   faTv = faTv;
@@ -55,7 +56,6 @@ export class ConsoleObserverComponent implements OnInit, OnDestroy {
     ).subscribe(data =>{
       this.updateTable(data);
     });
-
     this.fetchActors$ = combineLatest([
       route.params,
       this.refresh$,
@@ -65,7 +65,9 @@ export class ConsoleObserverComponent implements OnInit, OnDestroy {
       tap(([a, b, c]) => this.gid = a.id),
       switchMap(() => this.api.consoleActors(this.gid)),
     );
-
+    this.term$ = this.typing$.pipe(
+      debounceTime(500)
+    )
   }
 
   updateTable(data: ObserveChallenge[]) { 
@@ -112,17 +114,17 @@ export class ConsoleObserverComponent implements OnInit, OnDestroy {
     vm.minimized = !vm.minimized;
   }
 
-  // *** Custom Functions for "ngFor" ***
+  // Custom Functions for "ngFor"
 
-  // TrackBy Function to only reload when needed
-  // Helpful for inserting new challenge row asynchronously without reloading rest of table
+  // TrackBy Function to only reload rows when needed
+  // Helpful for inserting new challenge row asynchronously without reloading existing rows
   trackByChallengeId(_index: number, challengeItem: KeyValue<string, ObserveChallenge>) {
     return challengeItem.value.id;
   }
 
   // Order By PlayerName (team name), Then Order By Name (challenge name)
   // I.E. Sort alphabetically by Team Name and for challenges of the same team, then order by challenge name.
-  // Note: this is the same sorting done on the server, however this is needed for inserting new rows in the proper place
+  // Note: this is the same sorting done on the server, however this is needed for inserting new rows asynchronously in order.
   sortByName(a: KeyValue<string, ObserveChallenge>, b: KeyValue<string, ObserveChallenge>) {
     if (a.value.playerName < b.value.playerName) return -1;
     if (a.value.playerName > b.value.playerName) return 1;
