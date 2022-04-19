@@ -103,18 +103,7 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     if (!!this.request.observer && !!this.request.userId) {
-      timer(0, 10_000).pipe(
-        switchMap(a => this.api.findConsole(this.request.userId!))
-      ).subscribe(
-        (console: ConsoleActor) => {
-          if (this.request.sessionId != console.challengeId || this.request.name != console.vmName) {
-            this.request.sessionId = console.challengeId;
-            this.request.name = console.vmName;
-            this.titleSvc.setTitle(`console: ${console.vmName}`);
-            this.reload();
-          }
-        }
-      );
+      this.initCheckConsoleSwitch();
     } else {
       setTimeout(() => this.reload(), 1);
     }
@@ -316,6 +305,23 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
           this.showTools = true;
         }
       })
+    );
+  }
+
+  initCheckConsoleSwitch() {
+    this.subs.push(
+      timer(0, 5_000).pipe(
+        switchMap(a => this.api.findConsole(this.request.userId!))
+      ).subscribe(
+        (c: ConsoleActor) => {
+          if (this.request.sessionId != c.challengeId || this.request.name != c.vmName) {
+            this.request.sessionId = c.challengeId;
+            this.request.name = c.vmName;
+            this.titleSvc.setTitle(`console: ${c.vmName}`);
+            this.reload();
+          }
+        }
+      )
     );
   }
 
