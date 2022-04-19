@@ -72,6 +72,31 @@ export interface ChangedPlayer {
   role: PlayerRole;
 }
 
+export interface ObservePlayer {
+  id: string;
+  teamId: string;
+  userId: string;
+  userName: string;
+  gameId: string;
+  name: string;
+  approvedName: string;
+  sponsor: string;
+  sessionBegin: Date;
+  sessionEnd: Date;
+  sessionMinutes: number;
+  rank: number;
+  score: number;
+  time: number;
+  correctCount: number;
+  partialCount: number;
+  sponsorLogo: string;
+  session: TimeWindow;
+
+  expanded: boolean;
+  pinned: boolean;
+  fullWidthVM: boolean;
+}
+
 export interface SelfChangedPlayer {
   id: string;
   name: string;

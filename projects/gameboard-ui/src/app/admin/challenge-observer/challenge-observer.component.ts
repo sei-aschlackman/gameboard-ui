@@ -6,19 +6,19 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { faArrowLeft, faSyncAlt, faTv, faExternalLinkAlt, faExpandAlt, faUser, faThLarge, faMinusSquare, faPlusSquare, faCompressAlt, faSortAlphaDown, faSortAmountDownAlt, faAngleDoubleUp } from '@fortawesome/free-solid-svg-icons';
 import { combineLatest, timer, BehaviorSubject, Observable, Subscription } from 'rxjs';
-import { debounceTime, tap, switchMap } from 'rxjs/operators';
-import { ObserveChallenge, ObserveVM } from '../../api/board-models';
+import { debounceTime, tap, switchMap, map } from 'rxjs/operators';
+import { ConsoleActor, ObserveChallenge, ObserveVM } from '../../api/board-models';
 import { BoardService } from '../../api/board.service';
 import { ConfigService } from '../../utility/config.service';
 @Component({
-  selector: 'app-console-observer',
-  templateUrl: './console-observer.component.html',
-  styleUrls: ['./console-observer.component.scss'],
+  selector: 'app-challenge-observer',
+  templateUrl: './challenge-observer.component.html',
+  styleUrls: ['./challenge-observer.component.scss'],
 })
-export class ConsoleObserverComponent implements OnInit, OnDestroy {
+export class ChallengeObserverComponent implements OnInit, OnDestroy {
   refresh$ = new BehaviorSubject<boolean>(true);
   table: Map<string, ObserveChallenge> = new Map<string, ObserveChallenge>(); // table of player challenges to display
-  fetchActors$: Observable<Map<string, string[]>>; // stream updates of mapping users to consoles
+  fetchActors$: Observable<Map<string, ConsoleActor[]>>; // stream updates of mapping users to consoles
   tableData: Subscription; // subscribe to stream of new data to update table map
   typing$ = new BehaviorSubject<string>(""); // search term typing event
   term$: Observable<string>; // search term to filter by
@@ -64,6 +64,15 @@ export class ConsoleObserverComponent implements OnInit, OnDestroy {
       debounceTime(500),
       tap(([a, b, c]) => this.gid = a.id),
       switchMap(() => this.api.consoleActors(this.gid)),
+      map(data => data.reduce((map, item) => {
+        const key = `${item.challengeId}#${item.vmName}`;
+        if (map.has(key)) {
+          map.get(key)!.push(item)
+        } else {
+          map.set(key, [item])
+        }
+        return map;
+      }, new Map<string, ConsoleActor[]>()))
     );
     this.term$ = this.typing$.pipe(
       debounceTime(500)
@@ -122,8 +131,8 @@ export class ConsoleObserverComponent implements OnInit, OnDestroy {
     return challengeItem.value.id;
   }
 
-  // Order By PlayerName (team name), Then Order By Name (challenge name)
-  // I.E. Sort alphabetically by Team Name and for challenges of the same team, then order by challenge name.
+  // Order by PlayerName (team name), then order by Name (challenge name)
+  // I.E. Sort alphabetically by Team Name, then order by challenge name for challenges of the same team.
   // Note: this is the same sorting done on the server, however this is needed for inserting new rows asynchronously in order.
   sortByName(a: KeyValue<string, ObserveChallenge>, b: KeyValue<string, ObserveChallenge>) {
     if (a.value.playerName < b.value.playerName) return -1;

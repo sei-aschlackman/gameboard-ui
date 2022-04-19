@@ -1,7 +1,7 @@
 <!-- Copyright 2021 Carnegie Mellon University. All Rights Reserved. -->
 <!-- Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information. -->
 
-<a class="btn btn-link mr-2" routerLink="../../">
+<a class="btn btn-link mr-2" routerLink="/admin">
   <fa-icon [icon]="faArrowLeft"></fa-icon>
   <span>Back</span>
 </a>
@@ -9,7 +9,12 @@
   <fa-icon [icon]="faSync"></fa-icon>
   <span>Refresh</span>
 </button>
-<h2>Observe Challenges</h2>
+<div class="d-flex">
+  <h2>Observe Challenges</h2>
+  <a *ngIf="!!gid" class="btn btn-link mr-2 align-self-center" [routerLink]="['/admin/observer/players', gid]">
+    <span>Observe Players</span>
+  </a>
+</div>
 <div class="row">
   <div class="input-group mt-2 mb-3 col-5">
     <div class="input-group-prepend">
@@ -36,7 +41,7 @@
 <!-- Table of challenges -->
 <div class="bg-dark">
   <div class="row mx-0 py-2">
-    <h4 class="col-2 text-center">Player/Team {{ ''}}</h4>
+    <h4 class="col-2 text-left pl-3">Team/Player</h4>
     <h4 class="col-2 text-center">Game Score</h4>
     <h4 class="col-2 text-center">Challenge</h4>
     <h4 class="col-2 text-center">Duration</h4>
@@ -48,7 +53,7 @@
       <div *ngFor="let row of table | keyvalue: sortByName; trackBy: trackByChallengeId;" [hidden]="!(row.value | matchesterm:updates.term:'playerName':'name')" 
         [ngStyle]="{'order': row.value.gameRank| observeorder:row.value.pinned:sort:maxRank }" [class]="row.value.pinned ? 'pinned' : ''"> 
         <div class="row mx-0 border-top border-light py-2">
-          <div class="col-2 align-self-center pl-1">
+          <div class="col-2 align-self-center pl-1 text-left">
             <button class="mr-1 btn btn-sm border-0" [class]="row.value.pinned ?  'btn-outline-success' : 'btn-outline-light'" 
               (click)="togglePinRow(row.value)">
               <fa-icon class="pin-icon" [icon]="faAngleDoubleUp" [rotate]="row.value.pinned ? 90 : undefined"></fa-icon>
@@ -87,14 +92,14 @@
                     </div>
                   </div> <!-- end console header -->
                   <div *ngIf="updates.actors?.get(row.value.id+'#'+vm.name) as activeUsers" class="mx-1 mb-1 p-0 text-left" >
-                      <span *ngFor="let username of activeUsers" class="badge badge-success m-1 text-break text-dark">
+                      <span *ngFor="let user of activeUsers" class="badge badge-success m-1 text-break text-dark">
                         <fa-icon class="pr-1" [icon]="faUser"></fa-icon>
-                        {{username}}
+                        {{user.userName}}
                       </span>
                   </div> <!-- end users list header -->
                   <div class="iframe-wrapper mt-auto" style="padding: 0px;">
                     <iframe class="rounded-bottom w-100 h-100" frameborder="0"
-                      [src]="vm | safeurl: mksHost">
+                      [src]="(mksHost+'?f=0&o=1&s='+vm.challengeId+'&v='+vm.name) | safeurl">
                     </iframe>
                   </div> <!-- end iframe wrapper -->
                 </div>

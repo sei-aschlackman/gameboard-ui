@@ -64,10 +64,8 @@ export class BoardService {
   public consoles(gid: string): Observable<ObserveChallenge[]> {
     return this.http.get<ObserveChallenge[]>(`${this.url}/challenge/consoles`, { params: {gid}});
   }
-  public consoleActors(gid: string): Observable<Map<string, string[]>> {
-    return this.http.get<object>(`${this.url}/challenge/consoleactors`, { params: {gid}}).pipe(
-      map(data => new Map(Object.entries(data))) // create Map() from returned dictionary
-    );
+  public consoleActors(gid: string): Observable<ConsoleActor[]> {
+    return this.http.get<ConsoleActor[]>(`${this.url}/challenge/consoleactors`, { params: {gid}});
   }
 
   private transform(b: BoardPlayer): BoardPlayer {
