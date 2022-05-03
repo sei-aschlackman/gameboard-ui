@@ -26,7 +26,7 @@ import { PlayerSponsorReportComponent } from './player-sponsor-report/player-spo
 import { ChallengeReportComponent } from './challenge-report/challenge-report.component';
 import { AnnounceComponent } from './announce/announce.component';
 import { ChallengeObserverComponent } from './challenge-observer/challenge-observer.component';
-import { PlayerObserverComponent } from './player-observer/player-observer.component';
+import { TeamObserverComponent } from './team-observer/team-observer.component';
 import { PrereqsComponent } from './prereqs/prereqs.component';
 import { FeedbackReportComponent } from './feedback-report/feedback-report.component';
 
@@ -49,7 +49,7 @@ import { FeedbackReportComponent } from './feedback-report/feedback-report.compo
     ChallengeReportComponent,
     AnnounceComponent,
     ChallengeObserverComponent,
-    PlayerObserverComponent,
+    TeamObserverComponent,
     PrereqsComponent,
     FeedbackReportComponent
   ],
@@ -65,7 +65,7 @@ import { FeedbackReportComponent } from './feedback-report/feedback-report.compo
         { path: 'registrar/users', component: UserRegistrarComponent },
         { path: 'registrar/:id', component: PlayerRegistrarComponent },
         { path: 'observer/challenges/:id', component: ChallengeObserverComponent },
-        { path: 'observer/players/:id', component: PlayerObserverComponent },
+        { path: 'observer/teams/:id', component: TeamObserverComponent },
         { path: 'report', component: ReportPageComponent },
         { path: 'report/users', component: UserReportComponent },
         { path: 'report/sponsors', component: PlayerSponsorReportComponent },

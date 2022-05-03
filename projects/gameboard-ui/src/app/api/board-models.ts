@@ -217,6 +217,7 @@ export interface ChallengeGate {
 export interface ObserveChallenge {
   id: string;
   name: string;
+  tag: string;
   teamId: string;
   playerId: string;
   playerName: string;

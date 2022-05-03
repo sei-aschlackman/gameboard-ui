@@ -1,23 +1,27 @@
 import { KeyValue } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { faArrowLeft, faSyncAlt, faTv, faExternalLinkAlt, faExpandAlt, faUser, faThLarge, faMinusSquare, faPlusSquare, faCompressAlt, faSortAlphaDown, faSortAmountDownAlt, faAngleDoubleUp } from '@fortawesome/free-solid-svg-icons';
+import { faArrowLeft, faSyncAlt, faTv, faExternalLinkAlt, faExpandAlt, faUser, faThLarge, faMinusSquare, faPlusSquare, faCompressAlt, faSortAlphaDown, faSortAmountDownAlt, faAngleDoubleUp, faUsers, faWindowMaximize, faBullseye, faWindowRestore } from '@fortawesome/free-solid-svg-icons';
 import { combineLatest, timer, BehaviorSubject, Observable, Subscription } from 'rxjs';
 import { debounceTime, tap, switchMap, map } from 'rxjs/operators';
-import { ConsoleActor, ObserveChallenge, ObserveVM } from '../../api/board-models';
+import { ConsoleActor } from '../../api/board-models';
 import { BoardService } from '../../api/board.service';
-import { ObservePlayer, Player } from '../../api/player-models';
+import { Game } from '../../api/game-models';
+import { GameService } from '../../api/game.service';
+import { ObserveTeam, ObserveTeamMember, Team } from '../../api/player-models';
 import { PlayerService } from '../../api/player.service';
 import { ConfigService } from '../../utility/config.service';
 @Component({
-  selector: 'app-player-observer',
-  templateUrl: './player-observer.component.html',
-  styleUrls: ['./player-observer.component.scss']
+  selector: 'app-team-observer',
+  templateUrl: './team-observer.component.html',
+  styleUrls: ['./team-observer.component.scss']
 })
-export class PlayerObserverComponent implements OnInit, OnDestroy {
+export class TeamObserverComponent implements OnInit, OnDestroy {
   refresh$ = new BehaviorSubject<boolean>(true);
-  table: Map<string, ObservePlayer> = new Map<string, ObservePlayer>(); // table of player challenges to display
+  game?: Game; // game info like team or individual
+  table: Map<string, ObserveTeam> = new Map<string, ObserveTeam>(); // table of teams to display
   tableData: Subscription; // subscribe to stream of new data to update table map
+  gameData: Subscription; // subscribe to game retrieved based on route id
   actorMap: Map<string, ConsoleActor> = new Map<string, ConsoleActor>();
   fetchActors$: Observable<Map<string, ConsoleActor>>; // stream updates of mapping users to consoles
   typing$ = new BehaviorSubject<string>(""); // search term typing event
@@ -26,6 +30,7 @@ export class PlayerObserverComponent implements OnInit, OnDestroy {
   mksHost: string; // host url for mks console viewer
   sort: string = "byName"; // default sort method, other is "byRank"
   maxRank: number = 1;
+  isLoading: boolean = true;
   faArrowLeft = faArrowLeft;
   faTv = faTv;
   faSync = faSyncAlt;
@@ -34,18 +39,24 @@ export class PlayerObserverComponent implements OnInit, OnDestroy {
   faExpandAlt = faExpandAlt
   faCompressAlt = faCompressAlt;
   faUser = faUser
+  faUsers = faUsers
   faMinusSquare = faMinusSquare;
   faPlusSquare = faPlusSquare;
   faSortAmountDown = faSortAmountDownAlt
   faSortAlphaDown = faSortAlphaDown;
   faAngleDoubleUp = faAngleDoubleUp;
+  faWindowRestore = faWindowRestore;
   constructor(
     route: ActivatedRoute,
     private api: BoardService,
     private playerApi: PlayerService,
+    private gameApi: GameService,
     private conf: ConfigService
   ) {
     this.mksHost = conf.mkshost;
+    this.gameData = route.params.pipe(
+      switchMap(a => this.gameApi.retrieve(a.id))
+    ).subscribe(game => this.game = game);
     this.tableData = combineLatest([
       route.params,
       this.refresh$,
@@ -53,9 +64,11 @@ export class PlayerObserverComponent implements OnInit, OnDestroy {
     ]).pipe(
       debounceTime(500),
       tap(([a, b, c]) => this.gid = a.id),
-      switchMap(() => this.playerApi.list({gid: this.gid, sort:'name', filter:'active'}))
-    ).subscribe(data =>{
+      tap(() => this.isLoading = true),
+      switchMap(() => this.playerApi.observeTeams(this.gid)) // tomorrow do this instead of players
+    ).subscribe(data => {
       this.updateTable(data);
+      this.isLoading = false;
     });
     this.fetchActors$ = combineLatest([
       route.params,
@@ -72,19 +85,19 @@ export class PlayerObserverComponent implements OnInit, OnDestroy {
     )
   }
 
-  updateTable(data: Player[]) { 
-    for (let updatedPlayer of data) {
-      if (this.table.has(updatedPlayer.userId)) {
+  updateTable(data: Team[]) { 
+    for (let updatedTeam of data) {
+      if (this.table.has(updatedTeam.teamId)) {
         // modify fields with updates values without resetting the entire challenge object
-        let player = this.table.get(updatedPlayer.userId)!;
-        player.rank = updatedPlayer.rank;
-        player.score = updatedPlayer.score;
-        player.time = updatedPlayer.time;
+        let team = this.table.get(updatedTeam.teamId)!;
+        team.rank = updatedTeam.rank;
+        team.score = updatedTeam.score;
+        team.time = updatedTeam.time;
       } else {
-        this.table.set(updatedPlayer.userId, updatedPlayer as unknown as ObservePlayer);
+        this.table.set(updatedTeam.teamId, {...updatedTeam} as unknown as ObserveTeam);
       }
-      if (updatedPlayer.rank > this.maxRank)
-        this.maxRank = updatedPlayer.rank;
+      if (updatedTeam.rank > this.maxRank)
+        this.maxRank = updatedTeam.rank;
     }
   }
 
@@ -93,40 +106,50 @@ export class PlayerObserverComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.tableData.unsubscribe();
+    this.gameData.unsubscribe();
   }
 
-  go(player: ObservePlayer): void {
-    this.conf.openConsole(`?f=0&o=1&u=${player.userId}`);
+  go(member: ObserveTeamMember): void {
+    this.conf.openConsole(`?f=0&o=1&u=${member.id}`);
   }
 
-  toggleShowConsole(player: ObservePlayer) {
+  toggleShowConsole(player: ObserveTeam) {
     player.expanded = !player.expanded;
   }
   
-  togglePinRow(player: ObservePlayer) {
+  togglePinRow(player: ObserveTeam) {
     player.pinned = !player.pinned;
   }
 
-  toggleFullWidthVM(player: ObservePlayer) {
-    player.fullWidthVM = !player.fullWidthVM;
+  toggleFullWidth(player: ObserveTeamMember) {
+    player.fullWidth = !player.fullWidth;
+  }
+
+  toggleMinimize(member: ObserveTeamMember) {
+    member.minimized = !member.minimized;
+  }
+
+  minimizeAllOthers(user: ObserveTeamMember, team: ObserveTeam): void {
+      for (let member of team?.members) {
+        if (member.id != user.id)
+          member.minimized = true;
+    }
   }
 
   // Custom Functions for "ngFor"
 
   // TrackBy Function to only reload rows when needed
   // Helpful for inserting new player row asynchronously without reloading existing rows
-  trackByChallengeId(_index: number, challengeItem: KeyValue<string, ObservePlayer>) {
-    return challengeItem.value.userId;
+  trackByTeamId(_index: number, challengeItem: KeyValue<string, ObserveTeam>) {
+    return challengeItem.value.teamId;
   }
 
-  // Order by PlayerName (team name), then order by UserName
-  // I.E. Sort alphabetically by Team Name, then order by username for players of the same team
+  // Order by ApprovedName (team name)
+  // I.E. Sort alphabetically by Team Name
   // Note: this is the same sorting done on the server, however this is needed for inserting new rows asynchronously in order.
-  sortByName(a: KeyValue<string, ObservePlayer>, b: KeyValue<string, ObservePlayer>) {
+  sortByName(a: KeyValue<string, ObserveTeam>, b: KeyValue<string, ObserveTeam>) {
     if (a.value.approvedName < b.value.approvedName) return -1;
     if (a.value.approvedName > b.value.approvedName) return 1;
-    if (a.value.userName < b.value.userName) return -1;
-    if (a.value.userName > b.value.userName) return 1;
     return 0;
   }
 }

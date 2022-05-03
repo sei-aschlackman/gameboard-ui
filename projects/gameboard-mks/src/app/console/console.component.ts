@@ -314,12 +314,17 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
         switchMap(a => this.api.findConsole(this.request.userId!))
       ).subscribe(
         (c: ConsoleActor) => {
-          if (this.request.sessionId != c.challengeId || this.request.name != c.vmName) {
+          if (!c) { // no active console for this user yet
+            this.changeState('failed');
+          } else if (this.request.sessionId != c.challengeId || this.request.name != c.vmName) {
             this.request.sessionId = c.challengeId;
             this.request.name = c.vmName;
             this.titleSvc.setTitle(`console: ${c.vmName}`);
             this.reload();
           }
+        }, 
+        (err) => {
+          this.changeState('failed')
         }
       )
     );

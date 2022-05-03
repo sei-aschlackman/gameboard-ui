@@ -4,11 +4,13 @@
 import { KeyValue } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { faArrowLeft, faSyncAlt, faTv, faExternalLinkAlt, faExpandAlt, faUser, faThLarge, faMinusSquare, faPlusSquare, faCompressAlt, faSortAlphaDown, faSortAmountDownAlt, faAngleDoubleUp } from '@fortawesome/free-solid-svg-icons';
+import { faArrowLeft, faSyncAlt, faTv, faExternalLinkAlt, faExpandAlt, faUser, faThLarge, faMinusSquare, faPlusSquare, faCompressAlt, faSortAlphaDown, faSortAmountDownAlt, faAngleDoubleUp, faWindowRestore } from '@fortawesome/free-solid-svg-icons';
 import { combineLatest, timer, BehaviorSubject, Observable, Subscription } from 'rxjs';
 import { debounceTime, tap, switchMap, map } from 'rxjs/operators';
 import { ConsoleActor, ObserveChallenge, ObserveVM } from '../../api/board-models';
 import { BoardService } from '../../api/board.service';
+import { Game } from '../../api/game-models';
+import { GameService } from '../../api/game.service';
 import { ConfigService } from '../../utility/config.service';
 @Component({
   selector: 'app-challenge-observer',
@@ -17,15 +19,18 @@ import { ConfigService } from '../../utility/config.service';
 })
 export class ChallengeObserverComponent implements OnInit, OnDestroy {
   refresh$ = new BehaviorSubject<boolean>(true);
+  game?: Game;
   table: Map<string, ObserveChallenge> = new Map<string, ObserveChallenge>(); // table of player challenges to display
   fetchActors$: Observable<Map<string, ConsoleActor[]>>; // stream updates of mapping users to consoles
   tableData: Subscription; // subscribe to stream of new data to update table map
+  gameData: Subscription; // subscribe to game retrieved based on route id
   typing$ = new BehaviorSubject<string>(""); // search term typing event
   term$: Observable<string>; // search term to filter by
   gid = '';
   mksHost: string; // host url for mks console viewer
   sort: string = "byName"; // default sort method, other is "byRank"
   maxRank: number = 1;
+  isLoading: boolean = true;
   faArrowLeft = faArrowLeft;
   faTv = faTv;
   faSync = faSyncAlt;
@@ -39,12 +44,17 @@ export class ChallengeObserverComponent implements OnInit, OnDestroy {
   faSortAmountDown = faSortAmountDownAlt
   faSortAlphaDown = faSortAlphaDown;
   faAngleDoubleUp = faAngleDoubleUp;
+  faWindowRestore = faWindowRestore;
   constructor(
     route: ActivatedRoute,
     private api: BoardService,
+    private gameApi: GameService,
     private conf: ConfigService
   ) {
     this.mksHost = conf.mkshost;
+    this.gameData = route.params.pipe(
+      switchMap(a => this.gameApi.retrieve(a.id))
+    ).subscribe(game => this.game = game);
     this.tableData = combineLatest([
       route.params,
       this.refresh$,
@@ -52,9 +62,11 @@ export class ChallengeObserverComponent implements OnInit, OnDestroy {
     ]).pipe(
       debounceTime(500),
       tap(([a, b, c]) => this.gid = a.id),
+      tap(() => this.isLoading = true),
       switchMap(() => this.api.consoles(this.gid)),
     ).subscribe(data =>{
       this.updateTable(data);
+      this.isLoading = false;
     });
     this.fetchActors$ = combineLatest([
       route.params,
@@ -101,6 +113,7 @@ export class ChallengeObserverComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.tableData.unsubscribe();
+    this.gameData.unsubscribe();
   }
 
   go(vm: ObserveVM): void {
@@ -115,12 +128,19 @@ export class ChallengeObserverComponent implements OnInit, OnDestroy {
     challenge.pinned = !challenge.pinned;
   }
 
-  toggleFullWidthVM(vm: ObserveVM) {
+  toggleFullWidth(vm: ObserveVM) {
     vm.fullWidth = !vm.fullWidth;
   }
 
-  toggleMinimizeVM(vm: ObserveVM) {
+  toggleMinimize(vm: ObserveVM) {
     vm.minimized = !vm.minimized;
+  }
+
+  minimizeAllOthers(vm: ObserveVM, challenge: ObserveChallenge): void {
+    for (let console of challenge?.consoles) {
+      if (console.id != vm.id)
+        console.minimized = true;
+    }
   }
 
   // Custom Functions for "ngFor"
