@@ -1,0 +1,13 @@
+<ng-container *ngIf="unityActiveGame; else loadingUnity">
+    <div class="unity-container">
+        <iframe [src]="unityClientLink" id="unity-game-window" title="Unity Game Window" frameborder="0"
+            scrolling="no"></iframe>
+    </div>
+</ng-container>
+
+<ng-template #loadingUnity>
+    <div class="loading-unity" *ngIf="!isError">
+        <app-spinner></app-spinner>
+        <p>Connecting to {{ unityHost }}...</p>
+    </div>
+</ng-template>

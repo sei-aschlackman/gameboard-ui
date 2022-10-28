@@ -3,13 +3,15 @@
 
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { faTrash, faList, faSearch, faFilter, faCheck, faArrowLeft, faLongArrowAltDown, faCheckSquare, faSquare, faClipboard, faCertificate, faStar, faSyncAlt } from '@fortawesome/free-solid-svg-icons';
+import { faTrash, faList, faSearch, faFilter, faCheck, faArrowLeft, faLongArrowAltDown, faCheckSquare, faSquare, faClipboard, faCertificate, faStar, faSyncAlt, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
 import { asyncScheduler, BehaviorSubject, combineLatest, iif, interval, Observable, of, scheduled, timer } from 'rxjs';
 import { debounceTime, filter, map, mergeAll, switchMap, tap } from 'rxjs/operators';
+import { BoardService } from '../../api/board.service';
 import { Game } from '../../api/game-models';
 import { GameService } from '../../api/game.service';
 import { Player, PlayerSearch, TimeWindow } from '../../api/player-models';
 import { PlayerService } from '../../api/player.service';
+import { UnityService } from '../../unity/unity.service';
 import { ClipboardService } from '../../utility/clipboard.service';
 
 @Component({
@@ -20,12 +22,12 @@ import { ClipboardService } from '../../utility/clipboard.service';
 export class PlayerRegistrarComponent implements OnInit {
   refresh$ = new BehaviorSubject<boolean>(true);
   game!: Game;
-  ctx$: Observable<{game: Game, futures: Game[], players: Player[]}>;
+  ctx$: Observable<{ game: Game, futures: Game[], players: Player[] }>;
   source: Player[] = [];
   selected: Player[] = [];
   viewed: Player | undefined = undefined;
   viewChange$ = new BehaviorSubject<Player | undefined>(this.viewed);
-  search: PlayerSearch = { term: '', take: 0, filter: ['collapse'], sort: 'time'};
+  search: PlayerSearch = { term: '', take: 0, filter: ['collapse'], sort: 'time' };
   filter = '';
   teamView = 'collapse';
   scope = '';
@@ -37,6 +39,7 @@ export class PlayerRegistrarComponent implements OnInit {
 
   faTrash = faTrash;
   faList = faList;
+  faTriangleExclamation = faTriangleExclamation;
   faSearch = faSearch;
   faFilter = faFilter;
   faCheck = faCheck;
@@ -48,11 +51,13 @@ export class PlayerRegistrarComponent implements OnInit {
   faStar = faStar;
   faSync = faSyncAlt;
 
-  constructor(
+  constructor (
     route: ActivatedRoute,
     private gameapi: GameService,
     private api: PlayerService,
-    private clipboard: ClipboardService
+    private boardApi: BoardService,
+    private clipboard: ClipboardService,
+    private unityService: UnityService
   ) {
 
     const game$ = route.params.pipe(
@@ -88,9 +93,9 @@ export class PlayerRegistrarComponent implements OnInit {
     this.ctx$ = combineLatest([
       game$,
       players$,
-      gameapi.list({filter: ['future']})
+      gameapi.list({ filter: ['future'] })
     ]).pipe(
-      map(([game, players, futures]) => ({game, players, futures}))
+      map(([game, players, futures]) => ({ game, players, futures }))
     );
   }
 
@@ -164,6 +169,11 @@ export class PlayerRegistrarComponent implements OnInit {
 
   }
 
+  undeploy(model: Player): void {
+    this.unityService.undeployGame({ gameId: model.gameId, teamId: model.teamId })
+      .subscribe(result => console.log("Undeploy result: ", result));
+  }
+
   update(model: Player): void {
     this.api.update(model).subscribe();
   }
@@ -187,7 +197,7 @@ export class PlayerRegistrarComponent implements OnInit {
   }
 
   asCsv(p: Player): string {
-    return `${p.gameId},${p.teamId},${p.approvedName.replace(',', '-')},${p.id},${p.userId},${p.userName.replace(',','-')},${p.rank},${p.score},${p.time},${p.correctCount},${p.partialCount},${p.sessionBegin},${p.sessionEnd}`;
+    return `${p.gameId},${p.teamId},${p.approvedName.replace(',', '-')},${p.id},${p.userId},${p.userName.replace(',', '-')},${p.rank},${p.score},${p.time},${p.correctCount},${p.partialCount},${p.sessionBegin},${p.sessionEnd}`;
   }
 
   exportMailMeta(list: Player[]): void {
@@ -195,12 +205,12 @@ export class PlayerRegistrarComponent implements OnInit {
     const ids = a.map(p => p.teamId);
 
     this.api.getTeams(this.game.id)
-    .pipe(
-      map(r => r.filter(s => ids.find(i => s.id === i)))
-    )
-    .subscribe(data => {
-      this.clipboard.copyToClipboard(JSON.stringify(data, null, 2))
-    });
+      .pipe(
+        map(r => r.filter(s => ids.find(i => s.id === i)))
+      )
+      .subscribe(data => {
+        this.clipboard.copyToClipboard(JSON.stringify(data, null, 2))
+      });
 
   }
 

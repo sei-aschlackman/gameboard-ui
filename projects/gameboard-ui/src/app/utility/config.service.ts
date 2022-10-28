@@ -6,17 +6,16 @@ import { BehaviorSubject, Observable, of, Subject } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { UserManagerSettings } from 'oidc-client';
 import { catchError, map, tap } from 'rxjs/operators';
-import { environment } from 'projects/gameboard-ui/src/environments/environment';
+import { environment } from '../../environments/environment';
 import { Location, PlatformLocation } from '@angular/common';
 import { MarkedOptions, MarkedRenderer } from 'ngx-markdown';
-// import { MarkedRenderer, MarkedOptions } from 'ngx-markdown';
+import { LocalStorageService, StorageKey } from './local-storage.service';
 
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 export class ConfigService {
 
   private url = 'assets/settings.json';
   private restorationComplete = false;
-  storageKey = 'gameboard';
   basehref = '';
   settings: Settings = environment.settings;
   local: LocalAppSettings = {};
@@ -67,7 +66,7 @@ export class ConfigService {
 
   _shorttz_formatter = new Intl.DateTimeFormat(
     'en-US',
-    {...this.datedisplay_options, timeZoneName: 'short'}
+    { ...this.datedisplay_options, timeZoneName: 'short' }
   );
 
   datedisplay_options_with_seconds: Intl.DateTimeFormatOptions = {
@@ -86,12 +85,13 @@ export class ConfigService {
 
   _shorttz_formatter_with_seconds = new Intl.DateTimeFormat(
     'en-US',
-    {...this.datedisplay_options_with_seconds, timeZoneName: 'short' }
+    { ...this.datedisplay_options_with_seconds, timeZoneName: 'short' }
   );
 
-  constructor(
+  constructor (
     private http: HttpClient,
     private location: Location,
+    private storage: LocalStorageService,
     platform: PlatformLocation
   ) {
     this.basehref = platform.getBaseHrefFromDOM();
@@ -106,6 +106,22 @@ export class ConfigService {
     let path = this.settings.apphost || this.basehref;
     if (!path.endsWith('/')) {
       path += '/';
+    }
+    return path;
+  }
+
+  get gamebrainhost(): string {
+    let path = this.settings.gamebrainhost || this.basehref;
+    if (!path.endsWith('/')) {
+      path += '/'
+    }
+    return path;
+  }
+
+  get unityHost(): string {
+    let path = this.settings.unityclienthost || this.basehref;
+    if (!path.endsWith('/')) {
+      path += '/'
     }
     return path;
   }
@@ -153,10 +169,10 @@ export class ConfigService {
           return of({} as Settings);
         }),
         tap(s => {
-          this.settings = {...this.settings, ...s};
-          this.settings.oidc = {...this.settings.oidc, ...s.oidc};
+          console.log("loading settings", this.basehref + this.url);
+          this.settings = { ...this.settings, ...s };
+          this.settings.oidc = { ...this.settings.oidc, ...s.oidc };
           this.settings$.next(this.settings);
-          // console.log(this.settings);
         })
       );
   }
@@ -169,40 +185,38 @@ export class ConfigService {
     let item = this.tabs.find(t => t.url === url);
 
     if (!item) {
-      item = {url, window: null};
+      item = { url, window: null };
       this.tabs.push(item);
     }
 
     if (!item.window || item.window.closed) {
-        item.window = window.open(url);
+      item.window = window.open(url);
     } else {
-        item.window.focus();
+      item.window.focus();
     }
   }
 
   updateLocal(model: LocalAppSettings): void {
-    this.local = {...this.local, ...model};
+    this.local = { ...this.local, ...model };
     this.storeLocal(this.local);
     this.restorationComplete = true;
   }
 
   storeLocal(model: LocalAppSettings): void {
     try {
-      window.localStorage[this.storageKey] = JSON.stringify(model);
+      this.storage.add(StorageKey.Gameboard, JSON.stringify(model));
     } catch (e) {
     }
   }
   getLocal(): LocalAppSettings {
     try {
-        return JSON.parse(window.localStorage[this.storageKey] || {});
+      return JSON.parse(this.storage.get(StorageKey.Gameboard)!) || {};
     } catch (e) {
-        return {};
+      return {};
     }
   }
   clearStorage(): void {
-    try {
-        window.localStorage.removeItem(this.storageKey);
-    } catch (e) { }
+    this.storage.clear(StorageKey.Gameboard);
   }
 }
 
@@ -224,6 +238,8 @@ export interface Settings {
   imghost?: string;
   tochost?: string;
   supporthost?: string;
+  gamebrainhost?: string;
+  unityclienthost?: string;
   tocfile?: string;
   custom_background?: string;
   countdownStartSecondsAtMinute?: number;

@@ -5,9 +5,11 @@ import { Component, Input, OnInit } from '@angular/core';
 import { faBolt, faCircle, faDotCircle, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { Observable, Subscription, timer } from 'rxjs';
 import { finalize, map, tap } from 'rxjs/operators';
+import { BoardService } from '../../api/board.service';
 import { GameContext } from '../../api/models';
 import { Player, TimeWindow } from '../../api/player-models';
 import { PlayerService } from '../../api/player.service';
+import { UnityService } from '../../unity/unity.service';
 import { HubEvent, HubEventAction, HubState, NotificationService } from '../../utility/notification.service';
 
 @Component({
@@ -29,7 +31,9 @@ export class PlayerSessionComponent implements OnInit {
 
   constructor(
     private api: PlayerService,
-    private hub: NotificationService
+    private boardApi: BoardService,
+    private hub: NotificationService,
+    private unityService: UnityService
   ) {
     this.ctx$ = timer(0, 1000).pipe(
       map(i => this.ctx),
@@ -59,7 +63,6 @@ export class PlayerSessionComponent implements OnInit {
       if (!!this.ctx.player && !this.ctx.player.session.isAfter) {
         this.hub.init(this.ctx.player.id);
       }
-
     }
   }
 
@@ -75,8 +78,18 @@ export class PlayerSessionComponent implements OnInit {
   }
 
   reset(p: Player): void {
-    this.api.delete(p.id).subscribe(() =>
-      window.location.reload()
-    );
+    if (this.ctx.game.mode == 'unity') {
+      this.unityService.undeployGame({ gameId: p.gameId, teamId: p.teamId }).pipe(
+        tap(res => console.log("Undeploy Result: " + res)),
+        tap(() => this.api.delete(p.id).subscribe(() => {
+          window.location.reload();
+        }))
+      ).subscribe();
+    }
+    else {
+      this.api.delete(p.id).subscribe(() => {
+        window.location.reload();
+      });
+    }
   }
 }
