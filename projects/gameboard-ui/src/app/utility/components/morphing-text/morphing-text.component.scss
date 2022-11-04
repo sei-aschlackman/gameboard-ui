@@ -1,13 +1,14 @@
 $font-size: 4rem;
 
-:host { 
+:host {
     display: block;
     width: 100%;
+    min-width: 100%;
 }
 
 .morphing-text-component {
     display: flex;
-    font-family: Raleway 'sans-serif';
+    font-family: 'Source Code Pro', 'Raleway', 'Lucida Console', monospace;
 }
 
 svg {
@@ -24,6 +25,7 @@ svg {
 
 #text1,
 #text2 {
+    font-family: 'Source Code Pro', 'Raleway', 'Lucida Console', monospace;
     color: white;
     position: absolute;
     width: 100%;

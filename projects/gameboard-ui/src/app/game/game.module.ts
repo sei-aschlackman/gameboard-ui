@@ -27,6 +27,8 @@ import { ModalModule } from 'ngx-bootstrap/modal';
 import { CertificateComponent } from './certificate/certificate.component';
 import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
 import { UnityModule } from '../unity/unity.module';
+import { UnityBoardComponent } from '../unity/unity-board/unity-board.component';
+import { GameHubStatusComponent } from './game-hub-status/game-hub-status.component';
 
 
 @NgModule({
@@ -43,7 +45,8 @@ import { UnityModule } from '../unity/unity.module';
     ScoreboardTableComponent,
     PlayerPresenceComponent,
     FeedbackFormComponent,
-    CertificateComponent
+    CertificateComponent,
+    GameHubStatusComponent
   ],
   exports: [
   ],
@@ -54,9 +57,9 @@ import { UnityModule } from '../unity/unity.module';
     RouterModule.forChild([
       { path: 'teamup/:code', canActivate: [AuthGuard], component: PlayerEnlistComponent },
       { path: 'board/:id', canActivate: [AuthGuard], component: GameboardPageComponent },
+      { path: 'unity-board/:gameId/:playerId/:teamId/:sessionExpirationTime', canActivate: [AuthGuard], component: UnityBoardComponent },
       { path: 'scores/:id', component: ScoreboardPageComponent },
-      { path: ':id', component: GamePageComponent, children: [
-      ]}
+      { path: ':id', component: GamePageComponent, children: [] }
     ]),
     UtilityModule,
     FontAwesomeModule,

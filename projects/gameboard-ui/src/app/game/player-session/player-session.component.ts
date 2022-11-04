@@ -29,9 +29,8 @@ export class PlayerSessionComponent implements OnInit {
   faTrash = faTrash;
   faDot = faCircle;
 
-  constructor(
+  constructor (
     private api: PlayerService,
-    private boardApi: BoardService,
     private hub: NotificationService,
     private unityService: UnityService
   ) {
@@ -48,10 +47,9 @@ export class PlayerSessionComponent implements OnInit {
     // listen for hub session events (update / start) to keep team sync'd
     this.teamEvents$ = hub.teamEvents.pipe(
       tap(e => {
-        this.ctx.player = ({...this.ctx.player, ...e.model});
+        this.ctx.player = ({ ...this.ctx.player, ...e.model });
         this.api.transform(this.ctx.player);
         if (e.action === HubEventAction.deleted) {
-          console.log(e);
           this.ctx.player = ({ userId: this.ctx.user.id }) as Player
         }
       })
@@ -61,7 +59,7 @@ export class PlayerSessionComponent implements OnInit {
   ngOnInit(): void {
     if (this.ctx.game.allowTeam) {
       if (!!this.ctx.player && !this.ctx.player.session.isAfter) {
-        this.hub.init(this.ctx.player.id);
+        this.hub.init(this.ctx.player.teamId);
       }
     }
   }
@@ -77,10 +75,11 @@ export class PlayerSessionComponent implements OnInit {
     );
   }
 
+
+
   reset(p: Player): void {
     if (this.ctx.game.mode == 'unity') {
       this.unityService.undeployGame({ gameId: p.gameId, teamId: p.teamId }).pipe(
-        tap(res => console.log("Undeploy Result: " + res)),
         tap(() => this.api.delete(p.id).subscribe(() => {
           window.location.reload();
         }))

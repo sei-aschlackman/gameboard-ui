@@ -5,9 +5,20 @@
     </div>
 </ng-container>
 
+<app-error-div [errors]="errors"></app-error-div>
+
 <ng-template #loadingUnity>
-    <div class="loading-unity" *ngIf="!isError">
-        <app-spinner></app-spinner>
-        <p>Connecting to {{ unityHost }}...</p>
+    <div class="loading-container" *ngIf="!errors?.length">
+        <div class="flex-spacer"></div>
+        <div class="loading-unity">
+            <app-morphing-text></app-morphing-text>
+            <!-- <app-spinner></app-spinner> -->
+        </div>
+        <div class="flex-spacer"></div>
+    </div>
+
+    <div class="connecting-to-host">
+        <p class="connecting-to-launch-p"><strong>Connecting to launch control at</strong></p>
+        <p>{{ unityHost }}</p>
     </div>
 </ng-template>

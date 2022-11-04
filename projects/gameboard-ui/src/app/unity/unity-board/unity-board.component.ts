@@ -1,11 +1,13 @@
 import { Component, EventEmitter, Inject, Input, OnInit, Output, ViewChild, } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { combineLatest, interval } from 'rxjs';
+import { combineLatest, interval, Observable, of } from 'rxjs';
 import { ConfigService } from '../../utility/config.service';
 import { UnityActiveGame, UnityDeployContext } from '../unity-models';
 import { UnityService } from '../unity.service';
 import { DOCUMENT } from '@angular/common';
 import { LayoutService } from '../../utility/layout.service';
+import { ActivatedRoute } from '@angular/router';
+import { switchMap, take } from 'rxjs/operators';
 
 @Component({
   selector: 'app-unity-board',
@@ -16,19 +18,19 @@ export class UnityBoardComponent implements OnInit {
   @Input('gameContext') public ctx!: UnityDeployContext;
   @ViewChild('iframe') private iframe: HTMLIFrameElement | null = null;
   @Output() public gameOver = new EventEmitter();
-  @Output() public error = new EventEmitter<string>();
 
   unityHost: string | null = null;
   unityClientLink: SafeResourceUrl | null = null;
   unityActiveGame: UnityActiveGame | null = null;
-  isError = false;
+  errors: string[] = [];
 
   constructor (
     @Inject(DOCUMENT) private document: Document,
     private config: ConfigService,
     private sanitizer: DomSanitizer,
     public unityService: UnityService,
-    public layoutService: LayoutService) { }
+    public layoutService: LayoutService,
+    public route: ActivatedRoute) { }
 
   ngOnDestroy(): void {
     this.layoutService.stickyMenu$.next(true);
@@ -42,13 +44,26 @@ export class UnityBoardComponent implements OnInit {
       this.handleError(errorMessage);
     }
 
+    this.unityHost = this.config.settings.unityclienthost || null;
     this.unityService.error$.subscribe(err => this.handleError(err));
 
     this.layoutService.stickyMenu$.next(false);
-    this.unityHost = this.config.settings.unityclienthost || null;
     this.unityClientLink = this.sanitizer.bypassSecurityTrustResourceUrl(this.unityHost!);
     this.unityService.activeGame$.subscribe(game => this.unityActiveGame = game);
-    this.unityService.startGame(this.ctx);
+
+    this.route.paramMap.pipe(
+      take(1),
+      switchMap(params => {
+        return of({
+          gameId: params.get("gameId")!,
+          teamId: params.get("teamId")!,
+          playerId: params.get("playerId")!,
+          sessionExpirationTime: new Date(Date.parse(params.get("sessionExpirationTime")!))
+        }) as Observable<UnityDeployContext>;
+      })
+    ).subscribe(ctx => {
+      this.unityService.startGame(ctx);
+    });
 
     combineLatest([
       interval(1000),
@@ -61,7 +76,6 @@ export class UnityBoardComponent implements OnInit {
   }
 
   private handleError(error: string) {
-    this.isError = true;
-    this.error.emit(error);
+    this.errors.push(error);
   }
 }

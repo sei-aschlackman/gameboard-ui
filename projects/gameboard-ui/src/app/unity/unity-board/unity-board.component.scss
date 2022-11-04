@@ -1,11 +1,22 @@
-.loading-unity {
+.loading-container {
     display: flex;
     flex-direction: column;
     align-items: center;
+    min-height: 70vh;
+    width: 100%;
+}
+
+.loading-unity {
+    width: 100%;
+}
+
+.flex-spacer {
+    flex-grow: 1;
+    width: 100%;
 }
 
 .unity-container {
-    aspect-ratio: 16 /10;
+    aspect-ratio: 16 /10 !important;
     max-height: 100vh;
     width: 100%;
 }
@@ -16,7 +27,14 @@ iframe {
 }
 
 .connecting-to-host {
+    position: fixed;
+    bottom: 2rem;
+    width: 100%;
     text-transform: uppercase;
     font-size: 0.8rem;
     text-align: center;
+}
+
+.connecting-to-launch-p {
+    margin: 0;
 }
