@@ -1,10 +1,9 @@
-import { Component, EventEmitter, Inject, Input, OnInit, Output, ViewChild, } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { combineLatest, interval, Observable, of } from 'rxjs';
 import { ConfigService } from '../../utility/config.service';
 import { UnityActiveGame, UnityDeployContext } from '../unity-models';
 import { UnityService } from '../unity.service';
-import { DOCUMENT } from '@angular/common';
 import { LayoutService } from '../../utility/layout.service';
 import { ActivatedRoute } from '@angular/router';
 import { switchMap, take } from 'rxjs/operators';
@@ -16,7 +15,6 @@ import { switchMap, take } from 'rxjs/operators';
 })
 export class UnityBoardComponent implements OnInit {
   @Input('gameContext') public ctx!: UnityDeployContext;
-  @ViewChild('iframe') private iframe: HTMLIFrameElement | null = null;
   @Output() public gameOver = new EventEmitter();
 
   unityHost: string | null = null;
@@ -25,7 +23,6 @@ export class UnityBoardComponent implements OnInit {
   errors: string[] = [];
 
   constructor (
-    @Inject(DOCUMENT) private document: Document,
     private config: ConfigService,
     private sanitizer: DomSanitizer,
     public unityService: UnityService,
