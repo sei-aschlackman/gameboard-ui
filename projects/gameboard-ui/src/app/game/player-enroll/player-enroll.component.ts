@@ -151,20 +151,15 @@ export class PlayerEnrollComponent {
 
       // connectionId is null when disconnected
       if (this.notificationService.connection.connectionId) {
-        console.log("HUBCONNECT: sending Greet event");
         this.notificationService.connection.invoke("Greet");
-        console.log("HUBCONNECT: GREET sent")
         this.notificationService.presenceEvents.next({ action: HubEventAction.arrived, model: p.teamId });
       }
       else {
         this.notificationService.state$.pipe(
           takeUntil(of(!!this.notificationService.connection.connectionId))
-        ).subscribe(state => {
-          console.log("did it!");
-        });
+        ).subscribe();
 
         if (this.notificationService.connection.connectionId != null) {
-          console.log("HUBCONNECT: already connected");
           return;
         }
 
