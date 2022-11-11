@@ -16,7 +16,6 @@ import { first, switchMap, take } from 'rxjs/operators';
 })
 export class UnityBoardComponent implements OnInit {
   @Input('gameContext') public ctx!: UnityDeployContext;
-  // @ViewChild('iframe') private iframe: HTMLIFrameElement | null = null;
   @Output() public gameOver = new EventEmitter();
 
   errors: string[] = [];
