@@ -12,11 +12,8 @@
             <app-morphing-text *ngIf="!errors.length"></app-morphing-text>
         </div>
 
-        <div class="connecting-to-host">
-            <p><strong>Connecting to launch control at</strong></p>
+        <div class="connecting-to-host" *ngIf="!isProduction">
+            <p class="connecting-to-launch-p"><strong>Connecting to launch control at</strong></p>
             <p>{{ unityHost }}</p>
         </div>
     </ng-template>
-
-    <div class="flex-spacer"></div>
-</div>

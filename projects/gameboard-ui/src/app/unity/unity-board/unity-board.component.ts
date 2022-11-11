@@ -1,12 +1,13 @@
-import { Component, EventEmitter, Input, OnInit, Output, } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { combineLatest, interval, Observable, of } from 'rxjs';
+import { environment } from '../../../environments/environment';
 import { ConfigService } from '../../utility/config.service';
 import { UnityActiveGame, UnityDeployContext } from '../unity-models';
 import { UnityService } from '../unity.service';
 import { LayoutService } from '../../utility/layout.service';
 import { ActivatedRoute } from '@angular/router';
-import { switchMap, take } from 'rxjs/operators';
+import { first, switchMap, take } from 'rxjs/operators';
 
 @Component({
   selector: 'app-unity-board',
@@ -17,10 +18,11 @@ export class UnityBoardComponent implements OnInit {
   @Input('gameContext') public ctx!: UnityDeployContext;
   @Output() public gameOver = new EventEmitter();
 
+  errors: string[] = [];
+  isProduction = environment.production;
   unityHost: string | null = null;
   unityClientLink: SafeResourceUrl | null = null;
   unityActiveGame: UnityActiveGame | null = null;
-  errors: string[] = [];
 
   constructor (
     private config: ConfigService,
@@ -49,7 +51,7 @@ export class UnityBoardComponent implements OnInit {
     this.unityService.activeGame$.subscribe(game => this.unityActiveGame = game);
 
     this.route.paramMap.pipe(
-      take(1),
+      first(),
       switchMap(params => {
         return of({
           gameId: params.get("gameId")!,

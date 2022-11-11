@@ -54,6 +54,12 @@ $value in $theme-colors {
   }
 }
 
+
+@font-face {
+  font-family: "SourceCodePro";
+  src: url("assets/fonts/SourceCodePro.ttf") format("truetype");
+}
+
 body {
   min-height: 100vh;
 }
@@ -75,7 +81,6 @@ app-root {
 .reader {
   max-width: 800px;
   margin: 0 auto;
-  // margin: auto;
 }
 
 .fs-15 {
@@ -106,10 +111,6 @@ h5 {
   flex: 1;
 }
 
-// .img-fluid {
-//   max-height: 600px;
-//   max-width: 600px;
-// }
 .label {
   padding: .375rem .25rem !important;
   min-width: 240px;
