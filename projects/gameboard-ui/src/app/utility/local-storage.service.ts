@@ -3,12 +3,7 @@ import { Injectable } from '@angular/core';
 export enum StorageKey {
   Gameboard = "gameboard",
   UnityGameLink = "gameServerLink",
-  UnityOidcLink = "oidcLink",
-  VM1 = "VM1",
-  VM2 = "VM2",
-  VM3 = "VM3",
-  VM4 = "VM4",
-  VM5 = "VM5"
+  UnityOidcLink = "oidcLink"
 }
 
 @Injectable({ providedIn: 'root' })
@@ -41,7 +36,6 @@ export class LocalStorageService {
 
   clear(...keys: StorageKey[]): void {
     for (const key in keys) {
-      console.log('removing key', key);
       this._client.removeItem(key);
     }
   }
@@ -63,6 +57,10 @@ export class LocalStorageService {
   }
 
   remove(throwIfNotExists = false, ...keys: StorageKey[]): void {
+    this.removeArbitrary(throwIfNotExists, ...keys.map(key => key.toString()));
+  }
+
+  removeArbitrary(throwIfNotExists = false, ...keys: string[]): void {
     keys.forEach(key => {
       if (throwIfNotExists && !this._client.getItem(key.toString())) {
         throw new Error(`Storage key ${key} doesn't exist in local storage.`);
