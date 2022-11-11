@@ -16,13 +16,13 @@ export class UnityService {
   gameOver$ = new Observable();
   error$ = new Subject<any>();
 
+
   constructor (
     private config: ConfigService,
     private http: HttpClient,
     private storage: LocalStorageService) { }
 
   public endGame(ctx: UnityDeployContext): void {
-    this.clearLocalStorageKeys();
     this.activeGame$.complete();
     this.undeployGame({ ctx }).subscribe(m => this.log("Undeploy result:", m))
   }
@@ -30,18 +30,6 @@ export class UnityService {
   public async startGame(ctx: UnityDeployContext) {
     this.log("Validating context for the game...", ctx);
     this.validateDeployContext(ctx);
-
-    this.log("Resolving OIDC storage keys...");
-    const storageKey = `oidc.user:${this.config.settings.oidc.authority}:${this.config.settings.oidc.client_id}`;
-    const oidcUserToken = this.storage.getArbitrary(storageKey);
-
-    if (oidcUserToken == null) {
-      this.reportError("You don't seem to have an OIDC token. (If this is a playtest, try relogging. Sorry 🙁)");
-    }
-
-    this.log("User OIDC resolved.");
-    this.storage.add(StorageKey.UnityOidcLink, `oidc.user:${this.config.settings.oidc.authority}:${this.config.settings.oidc.client_id}`);
-    this.log("Added OIDC linking storage key for the Unity client.");
 
     this.log("Checking for an active game for the context:", ctx);
     const currentGame = await this.getCurrentGame(ctx).toPromise();
@@ -60,7 +48,7 @@ export class UnityService {
 
   public undeployGame(args: { ctx: UnityUndeployContext, retainLocalStorage?: boolean }): Observable<string> {
     if (!args.retainLocalStorage) {
-      this.clearLocalStorageKeys();
+      this.clearLocalStorageKeys(args.ctx.teamId);
     }
 
     const undeployEndpoint = `${this.API_ROOT}/unity/undeploy/${args.ctx.gameId}/${args.ctx.teamId}`;
@@ -70,20 +58,47 @@ export class UnityService {
   }
 
   private createLocalStorageKeys(game: UnityActiveGame) {
-    this.storage.add(StorageKey.UnityGameLink, game.headlessUrl);
+    this.log("Resolving OIDC storage keys...");
+    const storageKey = `oidc.user:${this.config.settings.oidc.authority}:${this.config.settings.oidc.client_id}`;
+    const oidcUserToken = this.storage.getArbitrary(storageKey);
 
-    if (game.vms?.length) {
-      for (let i = 0; i < game.vms.length; i++) {
-        this.storage.addArbitrary(`VM${i}`, game.vms[i].Url);
-      }
+    if (oidcUserToken == null) {
+      this.reportError("You don't seem to have an OIDC token. (If this is a playtest, try relogging. Sorry 🙁)", game.teamId);
     }
+
+    this.log("User OIDC resolved.");
+    const unityOidcLinkValue = `oidc.user:${this.config.settings.oidc.authority}:${this.config.settings.oidc.client_id}`;
+    this.storage.add(StorageKey.UnityOidcLink, unityOidcLinkValue);
+    this.log("Added OIDC linking storage key for the Unity client.");
+
+    this.storage.add(StorageKey.UnityGameLink, game.headlessUrl);
+    this.log("Added the Unity game link to local storage:", game.headlessUrl);
+
+    // in this implementation, we store keys in two places: one to support the existing unity
+    // implementation, and one to support our future direction.
+    // in a future update, we'll pull the non "namespaced" version of these keys (above)
+    // rely only on the keys stored under `unityChallenge:<teamId>`
+    const namespaceKeyName = this.computeNamespaceKey(game.teamId);
+    this.storage.addArbitrary(namespaceKeyName, JSON.stringify({
+      [StorageKey.UnityOidcLink.toString()]: unityOidcLinkValue,
+      [StorageKey.UnityGameLink.toString()]: game.headlessUrl,
+    }));
   }
 
-  private clearLocalStorageKeys() {
-    this.log("Clearing local storage keys...");
-    this.storage.remove(false, StorageKey.UnityOidcLink, StorageKey.UnityGameLink);
-    this.storage.removeIf((key, value) => /VM\d+/i.test(key));
+  private clearLocalStorageKeys(teamId?: string) {
+    const keysToRemove: string[] = [StorageKey.UnityOidcLink, StorageKey.UnityGameLink];
+
+    if (teamId) {
+      keysToRemove.push(this.computeNamespaceKey(teamId));
+    }
+
+    this.log("Clearing local storage keys...", keysToRemove);
+    this.storage.removeArbitrary(false, ...keysToRemove);
     this.log("Local storage keys cleared.");
+  }
+
+  private computeNamespaceKey(teamId: string) {
+    return `unityChallenge:${teamId}`;
   }
 
   private launchGame(ctx: UnityDeployContext) {
@@ -115,7 +130,7 @@ export class UnityService {
 
       // validation - did we make it?
       if (!this.isValidActiveGame(ctx)) {
-        this.reportError(`Couldn't resolve the deploy result for team ${ctx.teamId}. No gamespaces available.\n\nContext: ${JSON.stringify(ctx)}`);
+        this.reportError(`Couldn't resolve the deploy result for team ${ctx.teamId}. No gamespaces available.\n\nContext: ${JSON.stringify(ctx)}`, ctx.teamId);
       }
 
       // we have to do this every time the unity client is booted, even if the player already has
@@ -143,7 +158,7 @@ export class UnityService {
       this.createLocalStorageKeys(ctx);
     }
     catch (err: any) {
-      this.reportError(err);
+      this.reportError(err, ctx.teamId);
       this.endGame(ctx);
       return;
     }
@@ -169,9 +184,9 @@ export class UnityService {
     }
   }
 
-  private reportError(error: string) {
+  private reportError(error: string, teamId?: string) {
     console.error("Error raised -", error);
-    this.clearLocalStorageKeys();
+    this.clearLocalStorageKeys(teamId);
     console.log(this.LOG_PREFIX, "Cleared Unity-related storage keys.");
     this.error$.next(error);
     throw new Error(error);
@@ -183,11 +198,11 @@ export class UnityService {
     }
 
     if (!ctx.sessionExpirationTime) {
-      this.reportError("Can't start the game - no session expiration time was specified.");
+      this.reportError("Can't start the game - no session expiration time was specified.", ctx.teamId);
     }
 
     if (!ctx.gameId) {
-      this.reportError("Can't start the game - no gameId was specified.");
+      this.reportError("Can't start the game - no gameId was specified.", ctx.teamId);
     }
 
     if (!ctx.teamId) {
