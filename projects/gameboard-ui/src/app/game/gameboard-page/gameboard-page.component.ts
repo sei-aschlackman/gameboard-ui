@@ -109,8 +109,7 @@ export class GameboardPageComponent implements OnDestroy {
     this.specs$ = scheduled(
       [selected$, launched$],
       asyncScheduler).pipe(
-        mergeAll(),
-        // tap(a => console.log(a))
+        mergeAll()
       );
 
   }

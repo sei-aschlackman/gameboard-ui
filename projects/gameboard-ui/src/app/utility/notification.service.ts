@@ -67,7 +67,6 @@ export class NotificationService {
       await this.connect();
     }
 
-    console.log("HUBCONNECT: connecting to hub", id);
     this.teamId$.next(id);
   }
 
@@ -116,7 +115,6 @@ export class NotificationService {
 
         this.hubState.id = id;
         this.hubState.joined = true;
-        console.log("HUBCONNECT: joined channel", id);
 
         await this.initActors(id);
         this.postState();
