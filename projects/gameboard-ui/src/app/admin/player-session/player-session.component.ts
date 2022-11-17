@@ -18,10 +18,11 @@ export class PlayerSessionComponent implements OnInit {
   team$!: Observable<Team>;
   team!: Team;
   showRaw = false;
+  statusText = "Loading your session..."
   faInfo = faInfoCircle;
   errors: any[] = [];
 
-  constructor(
+  constructor (
     private api: PlayerService
   ) { }
 
@@ -36,7 +37,7 @@ export class PlayerSessionComponent implements OnInit {
       teamId: team.teamId,
       sessionEnd: team.sessionEnd
     }).subscribe(
-      () => {},
+      () => { },
       (err) => this.errors.push(err)
     );
   }

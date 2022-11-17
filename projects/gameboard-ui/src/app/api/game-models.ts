@@ -50,10 +50,8 @@ export interface GameDetail {
   hasEnded: boolean;
 }
 
-export interface Game extends GameDetail
-{
+export interface Game extends GameDetail {
   id: string;
-
   mapUrl: string;
   cardUrl: string;
   modeUrl: string;

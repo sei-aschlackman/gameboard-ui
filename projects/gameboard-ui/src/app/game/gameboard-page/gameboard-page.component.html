@@ -11,12 +11,12 @@
     </span>
     <div class="spacer"></div>
     <div>
-      <div class="text-info card-text mb-2">
-        <!-- <span *ngIf="game.isBefore">Game window opens in </span> -->
-        <span *ngIf="ctx.session.isAfter">Game Over </span>
+      <alert [type]="ctx.session.countdown | countdownAlertType">
+        Time remaining: <strong>{{ctx.session.countdown | countdown}}</strong>
+      </alert>
+      <div *ngIf="ctx.session.isAfter || ctx.session.isDuring" class="text-info card-text mb-2">
+        <span *ngIf="ctx.session.isAfter">Game Over</span>
         <span *ngIf="ctx.session.isDuring">Time Remaining: </span>
-        <span class="font-weight-bold" [class]="ctx.session.countdown | countdowncolor">{{ctx.session.countdown |
-          countdown}}</span>
       </div>
       <table class="table mt-2 text-center">
         <tbody>
