@@ -18,3 +18,9 @@ export interface GameContext {
   player: Player;
   user: ApiUser;
 }
+
+export interface GameEnrollmentContext {
+  game: Game;
+  user: ApiUser;
+  player: Player | null;
+}

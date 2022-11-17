@@ -1,13 +1,14 @@
 // Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
-import { Component, Input } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
+import { Component, Inject, Input } from '@angular/core';
 import { faCopy, faEdit, faPaste, faTrash, faUser } from '@fortawesome/free-solid-svg-icons';
 import { HubConnectionState } from '@microsoft/signalr';
-import { Observable, of, Subscription, timer } from 'rxjs';
-import { finalize, map, tap, delay, first, take, takeUntil } from 'rxjs/operators';
-import { GameContext } from '../../api/models';
-import { NewPlayer, Player, PlayerEnlistment, TeamInvitation, TimeWindow } from '../../api/player-models';
+import { Observable, of, timer } from 'rxjs';
+import { map, tap, first, takeUntil, catchError } from 'rxjs/operators';
+import { GameEnrollmentContext } from '../../api/models';
+import { NewPlayer, Player, PlayerEnlistment, TimeWindow } from '../../api/player-models';
 import { PlayerService } from '../../api/player.service';
 import { ConfigService } from '../../utility/config.service';
 import { HubEventAction, NotificationService } from '../../utility/notification.service';
@@ -18,19 +19,20 @@ import { HubEventAction, NotificationService } from '../../utility/notification.
   styleUrls: ['./player-enroll.component.scss']
 })
 export class PlayerEnrollComponent {
-  @Input() ctx!: GameContext;
+  @Input() ctx!: GameEnrollmentContext;
+  ctx$: Observable<GameEnrollmentContext>;
   errors: any[] = [];
   code = '';
   invitation = '';
+  token = '';
+  isLoading = true;
+  loadingText: string | undefined = "Loading your enrollment status...";
+
   faUser = faUser;
   faEdit = faEdit;
   faCopy = faCopy;
   faPaste = faPaste;
   faTrash = faTrash;
-  token = '';
-  ctx$: Observable<GameContext>;
-  delayMs: number = 2000;
-  ctxDelayed$: Observable<GameContext>;
 
   disallowedName: string | null = null;
   disallowedReason: string | null = null;
@@ -38,46 +40,46 @@ export class PlayerEnrollComponent {
   constructor (
     private api: PlayerService,
     private config: ConfigService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    @Inject(DOCUMENT) private document: Document
   ) {
+
     this.ctx$ = timer(0, 1000).pipe(
       map(i => this.ctx),
       tap(ctx => {
-        ctx.player.session = new TimeWindow(ctx.player.sessionBegin, ctx.player.sessionEnd);
-        ctx.game.session = new TimeWindow(ctx.game.gameStart, ctx.game.gameEnd);
-        ctx.game.registration = new TimeWindow(ctx.game.registrationOpen, ctx.game.registrationClose);
+        if (ctx.player) {
+          ctx.player.session = new TimeWindow(ctx.player.sessionBegin, ctx.player.sessionEnd);
+          ctx.game.session = new TimeWindow(ctx.game.gameStart, ctx.game.gameEnd);
+          ctx.game.registration = new TimeWindow(ctx.game.registrationOpen, ctx.game.registrationClose);
+        }
+
+        this.setEnrollmentChange(false);
       }),
-      tap((gc) => {
-        if (gc.player.nameStatus && gc.player.nameStatus != 'pending') {
+      tap(gc => {
+        if (gc.player && gc.player.nameStatus && gc.player.nameStatus != 'pending') {
           if (this.disallowedName == null) {
             this.disallowedName = gc.player.name;
             this.disallowedReason = gc.player.nameStatus;
           }
         }
-      })
+      }),
+      tap(() => this.setEnrollmentChange(false))
     );
-
-    // Delay needed to prevent an enroll refresh error; 2 seconds should be enough
-    this.ctxDelayed$ = this.ctx$.pipe(
-      delay(this.delayMs)
-    );
-  }
-
-
-  ngOnInit(): void {
   }
 
   enroll(uid: string, gid: string): void {
-
+    this.setEnrollmentChange(true, "Enrolling in the game...");
     const model = { userId: uid, gameId: gid } as NewPlayer;
 
-    const sub: Subscription = this.api.create(model).pipe(
-      finalize(() => sub.unsubscribe())
-    ).subscribe(
-      p => this.enrolled(p),
-      err => this.errors.push(err)
+    this.api.create(model).pipe(first()).subscribe(
+      p => {
+        this.enrolled(p);
+      },
+      err => {
+        this.errors.push(err)
+        this.setEnrollmentChange(false);
+      }
     );
-
   }
 
   async invite(p: Player) {
@@ -86,7 +88,7 @@ export class PlayerEnrollComponent {
       this.invitation = "";
 
       this.api.invite(p.id).pipe(first())
-        .subscribe((m: TeamInvitation) => {
+        .subscribe(m => {
           this.code = m.code;
           this.invitation = `${this.config.absoluteUrl}game/teamup/${m.code}`;
 
@@ -96,18 +98,14 @@ export class PlayerEnrollComponent {
   }
 
   redeem(p: Player): void {
-    const model = {
-      playerId: p.id,
-      code: this.token.split('/').pop()
-    } as PlayerEnlistment;
+    this.setEnrollmentChange(true, "Joining the team...");
+    const model = { playerId: p.id, code: this.token.split('/').pop() } as PlayerEnlistment;
 
-    const sub: Subscription = this.api.enlist(model).pipe(
-      tap(p => this.token = ''),
-      finalize(() => sub.unsubscribe())
+    this.api.enlist(model).pipe(
+      first(),
+      tap(p => this.token = '')
     ).subscribe(
-      async p => {
-        this.enrolled(p);
-      },
+      async p => this.enrolled(p),
       err => this.errors.push(err)
     );
   }
@@ -123,28 +121,36 @@ export class PlayerEnrollComponent {
     // Otherwise, if there is a disallowed reason as well, mark it as that reason
     else if (this.disallowedReason) p.nameStatus = this.disallowedReason;
 
-    const sub: Subscription = this.api.update(p).pipe(
-      finalize(() => sub.unsubscribe())
-    ).subscribe(
-      () => {
-        this.api.transform(this.ctx.player);
-      }
-    );
+    this.api.update(p)
+      .pipe(first())
+      .subscribe(
+        () => this.api.transform(this.ctx.player!)
+      );
   }
 
   delete(p: Player): void {
-    const sub: Subscription = this.api.delete(p.id).pipe(
-      finalize(() => sub.unsubscribe())
-    ).subscribe(() =>
-      this.enrolled(null)
-    );
+    this.setEnrollmentChange(true, "Unenrolling...");
+
+    this.api.delete(p.id).pipe(
+      first(),
+      catchError(err => of(console.error("Player deletion error", err))),
+      tap(_ => {
+        this.ctx.player = null;
+        this.enrolled(null);
+        this.document.defaultView?.scrollTo({ top: 0 });
+        this.setEnrollmentChange(false);
+      })
+    ).subscribe();
   }
 
   async enrolled(p: Player | null): Promise<void> {
     if (!p) {
+      this.setEnrollmentChange(false);
       return;
     }
 
+    // if this is a team game, hold the "is enrolling" status until we're done
+    // dealing with the player hub
     if (this.ctx.game.allowTeam && p) {
       this.ctx.player = p;
       this.notificationService.init(p.teamId);
@@ -164,11 +170,16 @@ export class PlayerEnrollComponent {
         }
 
         if (!!this.notificationService.connection.connectionId && this.notificationService.connection.state != HubConnectionState.Connecting) {
-          console.log("starting connection", this.notificationService.connection.state);
           await this.notificationService.connection.start();
-          console.log("connection started!");
         }
       }
     }
+
+    this.setEnrollmentChange(false);
+  }
+
+  private setEnrollmentChange(isChangingEnrollment: boolean, message: string | undefined = undefined): void {
+    this.isLoading = isChangingEnrollment;
+    this.loadingText = message;
   }
 }
