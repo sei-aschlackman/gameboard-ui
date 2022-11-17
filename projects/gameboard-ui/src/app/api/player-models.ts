@@ -1,6 +1,7 @@
 // Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
+import { SafeHtml } from "@angular/platform-browser";
 import { ChallengeResult } from "./board-models";
 import { Game } from "./game-models";
 import { Search } from "./models";
@@ -50,7 +51,7 @@ export class TimeWindow {
   window: number;
   countdown: number;
 
-  constructor (a: Date, b: Date) {
+  constructor(a: Date, b: Date) {
     const ts = new Date().valueOf();
     const start = new Date(a).valueOf();
     const end = new Date(b).valueOf();
@@ -63,11 +64,7 @@ export class TimeWindow {
       : this.isDuring && end > 0
         ? end - ts
         : 0
-      ;
-  }
-
-  static fromDateStrings(a: string, b: string) {
-    return new TimeWindow(new Date(a), new Date(b));
+    ;
   }
 }
 
@@ -170,7 +167,6 @@ export interface Team {
   challenges: TeamChallenge[];
   members: TeamMember[];
 }
-
 export interface TeamChallenge {
   id: string;
   name: string;
@@ -180,7 +176,6 @@ export interface TeamChallenge {
   duration: number;
   result: ChallengeResult;
 }
-
 export interface TeamMember {
   id: string;
   approvedName: string;
