@@ -1,7 +1,7 @@
 // Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
-import { Component, OnDestroy, OnInit, Renderer2 } from '@angular/core';
+import { Component, OnDestroy, Renderer2 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { faArrowLeft, faBolt, faExclamationTriangle, faTrash, faTv } from '@fortawesome/free-solid-svg-icons';
 import { asyncScheduler, merge, Observable, of, scheduled, Subject, Subscription, timer } from 'rxjs';
@@ -109,7 +109,8 @@ export class GameboardPageComponent implements OnDestroy {
     this.specs$ = scheduled(
       [selected$, launched$],
       asyncScheduler).pipe(
-        mergeAll()
+        mergeAll(),
+        // tap(a => console.log(a))
       );
 
   }

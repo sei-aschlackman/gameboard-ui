@@ -12,7 +12,6 @@ import { AlertModule } from 'ngx-bootstrap/alert';
 import { AgedDatePipe } from './pipes/aged-date.pipe';
 import { CamelspacePipe } from './pipes/camelspace.pipe';
 import { CountdownPipe } from './pipes/countdown.pipe';
-import { CountdownAlertPipe } from './pipes/countdown-alert-type.pipe';
 import { ShortDatePipe } from './pipes/short-date.pipe';
 import { ShortTimePipe } from './pipes/short-time.pipe';
 import { UntagPipe } from './pipes/untag.pipe';
@@ -24,6 +23,7 @@ import { GameCardComponent } from './components/game-card/game-card.component';
 import { YamlPipe } from './pipes/yaml.pipe';
 import { LoginComponent } from './components/login/login.component';
 import { ClockPipe } from './pipes/clock.pipe';
+import { CountdownColorPipe } from './pipes/countdown-color.pipe';
 import { ProfileEditorComponent } from './components/profile-editor/profile-editor.component';
 import { FormsModule } from '@angular/forms';
 import { MessageBoardComponent } from './components/message-board/message-board.component';
@@ -38,7 +38,6 @@ import { UntilPipe } from './pipes/until-date.pipe';
 import { RouterModule } from '@angular/router';
 import { ImagestackComponent } from './components/imagestack/imagestack.component';
 import { MorphingTextComponent } from './components/morphing-text/morphing-text.component';
-import { SafePipe } from './pipes/safe.pipe';
 
 const components = [
   ClipspanComponent,
@@ -56,8 +55,7 @@ const components = [
   UntilPipe,
   CamelspacePipe,
   CountdownPipe,
-  CountdownAlertPipe,
-  SafePipe,
+  CountdownColorPipe,
   ShortDatePipe,
   ShortTimePipe,
   UntagPipe,

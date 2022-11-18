@@ -2,24 +2,19 @@
   img {
     max-height: 150px;
   }
-
   span {
     font-size: 1.5rem;
   }
-
   .small-card {
     width: 120px;
   }
 }
-
 .mapbox {
   max-width: 800px;
 }
-
 .quizbox {
   max-width: 800px;
 }
-
 .mapbox-dot {
   fill: lime;
   stroke: lime;
@@ -27,13 +22,22 @@
   stroke-opacity: 1;
   stroke-width: .25;
 }
-
 .callout {
   position: absolute;
   z-index: 10;
   border-radius: .5rem;
   max-width: 300px;
   max-height: 300px;
+}
+
+.countdown-green {
+  color: rgb(0, 191, 0);
+}
+.countdown-yellow {
+  color: rgb(236, 236, 130);
+}
+.countdown-red {
+  color: rgb(255, 53, 53);
 }
 
 // Uses a 16 : 10 ratio, but can be changed here
