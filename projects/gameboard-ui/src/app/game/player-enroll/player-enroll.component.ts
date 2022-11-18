@@ -134,7 +134,10 @@ export class PlayerEnrollComponent {
 
   delete(p: Player): void {
     const sub: Subscription = this.api.delete(p.id).pipe(
-      finalize(() => sub.unsubscribe())
+      first(),
+      tap(() => {
+        this.ctx.player.id = "";
+      })
     ).subscribe(() =>
       this.enrolled(null)
     );
@@ -145,8 +148,9 @@ export class PlayerEnrollComponent {
       return;
     }
 
-    if (this.ctx.game.allowTeam && p) {
-      this.ctx.player = p;
+    this.ctx.player = p;
+
+    if (this.ctx.game.allowTeam) {
       this.notificationService.init(p.teamId);
 
       // connectionId is null when disconnected
