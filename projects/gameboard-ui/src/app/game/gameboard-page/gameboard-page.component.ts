@@ -5,7 +5,7 @@ import { Component, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { faArrowLeft, faBolt, faExclamationTriangle, faTrash, faTv } from '@fortawesome/free-solid-svg-icons';
 import { asyncScheduler, merge, Observable, of, scheduled, Subject, Subscription, timer } from 'rxjs';
-import { catchError, debounceTime, filter, map, mergeAll, switchMap, tap } from 'rxjs/operators';
+import { catchError, debounceTime, filter, first, map, mergeAll, switchMap, tap } from 'rxjs/operators';
 import { BoardPlayer, BoardSpec, Challenge, NewChallenge, VmState } from '../../api/board-models';
 import { BoardService } from '../../api/board.service';
 import { ApiUser } from '../../api/user-models';
@@ -129,13 +129,23 @@ export class GameboardPageComponent implements OnDestroy {
   syncOne = (c: Challenge): BoardSpec => {
     this.deploying = false;
     const s = this.ctx.game.specs.find(i => i.id === c.specId);
+
     if (!!s) {
       s.instance = c;
       this.api.checkPrereq(s, this.ctx)
       this.api.setColor(s);
+
       // TODO: revisit this temp solution for auto-grading sync
-      this.refresh$.next(this.ctx.id);
+      // this.refresh$.next(this.ctx.id);
+
+      // proposed solution for auto-grading sync:
+      this.api.load(this.ctx.id).pipe(
+        catchError(err => of(console.error("Auto-grading refresh error:", err))),
+        first(),
+        map(b => this.ctx = b || this.ctx)
+      );
     }
+
     return s || {} as BoardSpec;
   }
 
