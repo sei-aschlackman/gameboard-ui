@@ -1,15 +1,14 @@
 // Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
-import { Component, OnDestroy, Renderer2 } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { faArrowLeft, faBolt, faExclamationTriangle, faTrash, faTv } from '@fortawesome/free-solid-svg-icons';
 import { asyncScheduler, merge, Observable, of, scheduled, Subject, Subscription, timer } from 'rxjs';
-import { catchError, debounceTime, filter, map, mergeAll, switchMap, tap } from 'rxjs/operators';
+import { catchError, debounceTime, filter, first, map, mergeAll, switchMap, tap } from 'rxjs/operators';
 import { BoardPlayer, BoardSpec, Challenge, NewChallenge, VmState } from '../../api/board-models';
 import { BoardService } from '../../api/board.service';
 import { ApiUser } from '../../api/user-models';
-import { UnityDeployContext } from '../../unity/unity-models';
 import { ConfigService } from '../../utility/config.service';
 import { HubState, NotificationService } from '../../utility/notification.service';
 import { UserService } from '../../utility/user.service';
@@ -20,10 +19,6 @@ import { UserService } from '../../utility/user.service';
   styleUrls: ['./gameboard-page.component.scss']
 })
 export class GameboardPageComponent implements OnDestroy {
-  // @ViewChild('mapbox') mapboxRef!: ElementRef;
-  // @ViewChild('callout') calloutRef!: ElementRef;
-  // mapbox!: HTMLDivElement;
-  // callout!: HTMLDivElement;
   refresh$ = new Subject<string>();
   ctx!: BoardPlayer;
   hoveredItem: BoardSpec | null = null;
@@ -32,7 +27,6 @@ export class GameboardPageComponent implements OnDestroy {
   launching$ = new Subject<BoardSpec>();
   specs$: Observable<BoardSpec>;
 
-  //#region GAMEBRAIN VARIABLES
   etd$!: Observable<number>;
   errors: any[] = [];
   faTv = faTv;
@@ -45,13 +39,11 @@ export class GameboardPageComponent implements OnDestroy {
   user$: Observable<ApiUser | null>;
   hubstate$: Observable<HubState>;
   hubsub: Subscription;
-  unityGameContext!: UnityDeployContext;
 
   constructor (
     route: ActivatedRoute,
     private router: Router,
     private api: BoardService,
-    private renderer: Renderer2,
     private config: ConfigService,
     private hub: NotificationService,
     usersvc: UserService
@@ -110,20 +102,18 @@ export class GameboardPageComponent implements OnDestroy {
       [selected$, launched$],
       asyncScheduler).pipe(
         mergeAll(),
-        // tap(a => console.log(a))
       );
 
   }
 
   validate(b: BoardPlayer): void {
     if (!b.game) {
-      console.log(b);
       this.router.navigateByUrl('/');
     } else {
       this.ctx = b;
-
     }
   }
+
   ngOnDestroy(): void {
     if (!this.hubsub.closed) {
       this.hubsub.unsubscribe();
@@ -139,13 +129,23 @@ export class GameboardPageComponent implements OnDestroy {
   syncOne = (c: Challenge): BoardSpec => {
     this.deploying = false;
     const s = this.ctx.game.specs.find(i => i.id === c.specId);
+
     if (!!s) {
       s.instance = c;
       this.api.checkPrereq(s, this.ctx)
       this.api.setColor(s);
+
       // TODO: revisit this temp solution for auto-grading sync
-      this.refresh$.next(this.ctx.id);
+      // this.refresh$.next(this.ctx.id);
+
+      // proposed solution for auto-grading sync:
+      this.api.load(this.ctx.id).pipe(
+        catchError(err => of(console.error("Auto-grading refresh error:", err))),
+        first(),
+        map(b => this.ctx = b || this.ctx)
+      );
     }
+
     return s || {} as BoardSpec;
   }
 
@@ -190,7 +190,9 @@ export class GameboardPageComponent implements OnDestroy {
         return of({} as Challenge);
       })
     ).subscribe(
-      c => this.syncOne(c)
+      c => {
+        this.syncOne(c);
+      }
     );
   }
 
@@ -205,58 +207,8 @@ export class GameboardPageComponent implements OnDestroy {
   mouseenter(e: MouseEvent, spec: BoardSpec) {
     this.hoveredItem = spec;
     spec.c = 'purple';
-
-    // const middle = this.mapbox.clientWidth / 2;
-    // const centerr = spec.r * this.mapbox.clientWidth;
-    // const centerx = spec.x * this.mapbox.clientWidth + centerr;
-    // const centery = spec.y * this.mapbox.clientHeight + centerr;
-    // const deltaX = middle - centerx;
-    // const deltaY = middle - centery;
-    // const vectorX = deltaX / Math.abs(deltaX);
-    // const vectorY = deltaY / Math.abs(deltaY);
-    // let left=0, top=0, right=0, bottom=0;
-    // if (vectorX > 0) {
-    //   left = centerx + centerr;
-    //   if (vectorY > 0) {
-    //     top = centery + centerr;
-    //   } else {
-    //     bottom = middle*2 - centery + (2* centerr);
-    //   }
-    // } else {
-    //   right = middle*2 - centerx + (2*centerr);
-    //   if (vectorY > 0) {
-    //     top = centery + centerr;
-    //   } else {
-    //     bottom = middle*2 - centery + (2* centerr);
-    //   }
-    // }
-
-    // // console.log(`delta: ${deltaX}x${deltaY} r: ${centerr}`);
-
-    // if (!!left) {
-    //   this.renderer.setStyle(this.callout, 'left', left+'px');
-    // } else {
-    //   this.renderer.removeStyle(this.callout, 'left');
-    // }
-    // if (!!top) {
-    //   this.renderer.setStyle(this.callout, 'top', top+'px');
-    // } else {
-    //   this.renderer.removeStyle(this.callout, 'top');
-    // }
-    // if (!!right) {
-    //   this.renderer.setStyle(this.callout, 'right', right+'px');
-    // } else {
-    //   this.renderer.removeStyle(this.callout, 'right');
-    // }
-    // if (!!bottom) {
-    //   this.renderer.setStyle(this.callout, 'bottom', bottom+'px');
-    // } else {
-    //   this.renderer.removeStyle(this.callout, 'bottom');
-    // }
-
-    // console.log(`middle: ${middle} pos: ${top} ${right} ${bottom} ${left}`);
-
   }
+
   mouseleave(e: MouseEvent, spec: BoardSpec) {
     this.hoveredItem = null;
     this.api.setColor(spec);
