@@ -2,7 +2,7 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { Component, Input, OnInit } from '@angular/core';
-import { faBolt, faCircle, faDotCircle, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faBolt, faCircle, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { Observable, of, Subscription, timer } from 'rxjs';
 import { catchError, finalize, first, map, tap } from 'rxjs/operators';
 import { GameContext } from '../../api/models';
@@ -74,11 +74,8 @@ export class PlayerSessionComponent implements OnInit {
     );
   }
 
-
-
   reset(p: Player): void {
     if (this.ctx.game.mode == 'unity') {
-      this.unityService.activeGame$.pipe()
       this.unityService.undeployGame({ ctx: { gameId: p.gameId, teamId: p.teamId } }).pipe(
         catchError(err => of("Player session couldn't undeploy the Unity game:", err)),
         first(),
