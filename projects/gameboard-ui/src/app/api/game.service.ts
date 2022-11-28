@@ -11,13 +11,11 @@ import { ChangedGame, Game, GameGroup, NewGame, SessionForecast, UploadedFile } 
 import { TimeWindow } from './player-models';
 import { Spec } from './spec-models';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class GameService {
   url = '';
   private cache: CachedGame[] = [];
-  constructor(
+  constructor (
     private http: HttpClient,
     private config: ConfigService
   ) {
@@ -92,7 +90,7 @@ export class GameService {
   }
 
   public getPrereqs(g: string): Observable<ChallengeGate[]> {
-    return this.http.get<ChallengeGate[]>(`${this.url}/challengegates`, {params: { g }});
+    return this.http.get<ChallengeGate[]>(`${this.url}/challengegates`, { params: { g } });
   }
   public savePrereq(g: ChallengeGate): Observable<ChallengeGate> {
     return this.http.post<ChallengeGate>(`${this.url}/challengegate`, g);
@@ -132,17 +130,17 @@ export class GameService {
     game.cardUrl = game.logo
       ? `${this.config.imagehost}/${game.logo}`
       : `${this.config.basehref}assets/card.png`
-    ;
+      ;
 
     game.mapUrl = game.background
       ? `${this.config.imagehost}/${game.background}`
       : `${this.config.basehref}assets/map.png`
-    ;
+      ;
 
     game.modeUrl = game.mode
       ? `${this.config.basehref}assets/${game.mode}.png`
       : `${this.config.basehref}assets/vm.png`
-    ;
+      ;
 
     game.session = new TimeWindow(game.gameStart, game.gameEnd);
 
@@ -162,7 +160,7 @@ export class CachedGame {
   id: string;
   ts: number = 0;
   game: Game;
-  constructor(
+  constructor (
     game: Game
   ) {
     this.game = game;

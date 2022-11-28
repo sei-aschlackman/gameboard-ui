@@ -6,8 +6,8 @@ import { ConfigService } from '../../utility/config.service';
 import { UnityActiveGame, UnityDeployContext } from '../unity-models';
 import { UnityService } from '../unity.service';
 import { LayoutService } from '../../utility/layout.service';
-import { ActivatedRoute } from '@angular/router';
-import { first, switchMap, take } from 'rxjs/operators';
+import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
+import { filter, first, switchMap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-unity-board',
@@ -29,7 +29,8 @@ export class UnityBoardComponent implements OnInit {
     private sanitizer: DomSanitizer,
     public unityService: UnityService,
     public layoutService: LayoutService,
-    public route: ActivatedRoute) { }
+    public route: ActivatedRoute,
+    private router: Router) { }
 
   ngOnDestroy(): void {
     this.layoutService.stickyMenu$.next(true);
@@ -69,8 +70,16 @@ export class UnityBoardComponent implements OnInit {
       this.unityService.gameOver$,
     ]).subscribe(([tick, isGameOver]) => {
       if (isGameOver) {
-        alert("The game's over! What's supposed to happen now?");
+        console.log("Game over. What now?");
       }
+    });
+
+    this.router.events.pipe(
+      filter(e => e instanceof NavigationEnd)
+    ).subscribe(e => {
+      // reload to fix css (?)
+      console.log((e as NavigationEnd).urlAfterRedirects);
+      window.location = window.location;
     });
   }
 
