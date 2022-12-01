@@ -58,7 +58,7 @@ export class GameboardPageComponent implements OnDestroy {
       this.refresh$
     ).pipe(
       filter(id => !!id),
-      debounceTime(100),
+      debounceTime(300),
       switchMap(id => api.load(id).pipe(
         catchError(err => of({} as BoardPlayer))
       )),
@@ -129,21 +129,16 @@ export class GameboardPageComponent implements OnDestroy {
   syncOne = (c: Challenge): BoardSpec => {
     this.deploying = false;
     const s = this.ctx.game.specs.find(i => i.id === c.specId);
+    const isUpdated = c.score > 0 && s?.instance?.score !== c.score;
 
     if (!!s) {
       s.instance = c;
       this.api.checkPrereq(s, this.ctx)
       this.api.setColor(s);
+    }
 
-      // TODO: revisit this temp solution for auto-grading sync
-      // this.refresh$.next(this.ctx.id);
-
-      // proposed solution for auto-grading sync:
-      this.api.load(this.ctx.id).pipe(
-        catchError(err => of(console.error("Auto-grading refresh error:", err))),
-        first(),
-        map(b => this.ctx = b || this.ctx)
-      );
+    if (isUpdated) {
+      this.refresh$.next(this.ctx.id);
     }
 
     return s || {} as BoardSpec;
