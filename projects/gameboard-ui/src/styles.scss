@@ -211,3 +211,14 @@ app-spinner svg {
 .custom-bg-purple {
   background-color: #424;
 }
+
+// reboot.css breaks th alignment, so set explicitly
+th[align="left"] {
+  text-align: left;
+}
+th[align="right"] {
+  text-align: right;
+}
+th[align="center"] {
+  text-align: center;
+}
