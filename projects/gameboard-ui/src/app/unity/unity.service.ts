@@ -10,7 +10,7 @@ import { catchError, filter, first, map, switchMap, tap } from 'rxjs/operators';
 export class UnityService {
   private API_ROOT = `${this.config.apphost}api`;
   private LOG_PREFIX = "[UnityService]:";
-  private VERBOSE = true;
+  private VERBOSE = false;
 
   activeGame$ = new Subject<UnityActiveGame>();
   gameOver$ = new Observable();
@@ -157,16 +157,14 @@ export class UnityService {
       // in them not getting challenge data created. so we call every time here, but on the back end, we ensure that they get one
       // challenge per unity game.
       this.log(`Calling in challenge data for player ${ctx.playerId} on team ${ctx.teamId}. (They'll only ever get one challenge created for this game.)`);
-      this.http.post<NewUnityChallenge>(`${this.API_ROOT}/unity/challenge`, {
+      this.http.post(`${this.API_ROOT}/unity/challenge`, {
         gameId: ctx.gameId,
         playerId: ctx.playerId,
         teamId: ctx.teamId,
         maxPoints: ctx.totalPoints,
         gamespaceId: ctx.gamespaceId,
         vms: ctx.vms
-      }).pipe(first()).subscribe(result => {
-        this.log("Deployed challenge data:", result);
-      });
+      }).pipe(first()).subscribe();
 
       // add necessary items to local storage
       this.createLocalStorageKeys(ctx);
