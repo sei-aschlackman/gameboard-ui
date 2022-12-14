@@ -2,12 +2,9 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { Component, Input, OnInit } from '@angular/core';
-import { ActivatedRoute, ActivatedRouteSnapshot, Router } from '@angular/router';
-import { Observable } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
+import { ActivatedRoute } from '@angular/router';
 import { Game } from '../../api/game-models';
 import { GameService } from '../../api/game.service';
-import { GameContext } from '../../api/models';
 
 @Component({
   selector: 'app-game-info',
@@ -19,7 +16,7 @@ export class GameInfoComponent implements OnInit {
 
   // game$!: Observable<Game>;
 
-  constructor(
+  constructor (
     route: ActivatedRoute,
     api: GameService
   ) {
@@ -27,7 +24,7 @@ export class GameInfoComponent implements OnInit {
     // this.game$ = route.parent.params.pipe(
     //   switchMap(p => api.retrieve(p.id)),
     // );
-   }
+  }
 
   ngOnInit(): void {
   }
