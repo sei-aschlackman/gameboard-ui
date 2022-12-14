@@ -87,14 +87,12 @@ export function loadSettings(
   config: ConfigService,
 ): (() => Observable<any>) {
   return (): Observable<any> => config.load()
-  // .pipe(tap(s => console.log('done settings init')))
-  ;
+    ;
 }
 
 export function register(
   user: UserService
 ): (() => Promise<void>) {
   return (): Promise<void> => user.register()
-  // .then(() => console.log('done user init'))
-  ;
+    ;
 }

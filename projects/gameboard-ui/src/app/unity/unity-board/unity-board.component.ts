@@ -38,8 +38,6 @@ export class UnityBoardComponent implements OnInit {
 
   ngOnInit(): void {
     if (!this.config.settings.unityclienthost) {
-      console.log("Unity host error", this.config.settings);
-
       const errorMessage = `Unity host is not set: ${this.config.settings.unityclienthost}`;
       this.handleError(errorMessage);
     }

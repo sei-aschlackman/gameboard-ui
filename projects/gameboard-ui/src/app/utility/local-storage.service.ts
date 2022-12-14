@@ -27,7 +27,7 @@ export class LocalStorageService {
   * because you should only do it if you really have to. Most common scenarios
   * require you to add an entry for your key to the `StorageKey` enum. This is just
   * here for cases in which the key is dynamic and not known at compile time.
-  * 
+  *
   * @param key - The local storage key
   * @param value - The local storage value
   * @param throwIfExists - Lets you specify whether you want an exception if the key exists
@@ -67,7 +67,6 @@ export class LocalStorageService {
       }
 
       if (this._client.getItem(key)) {
-        console.log("[LocalStorage]: Flushing", key);
         this._client.removeItem(key);
       }
     });
@@ -81,7 +80,6 @@ export class LocalStorageService {
       const value = this.getArbitrary(key!);
 
       if (predicate(key!, value!)) {
-        console.log("remove key", key);
         keysToRemove.push(key!);
       }
     }

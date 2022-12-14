@@ -14,14 +14,13 @@ export class AdminGuard implements CanActivate, CanActivateChild, CanLoad {
 
   destinationUrl: string = "";
 
-  constructor(
+  constructor (
     private userSvc: UserService,
     private router: Router
-  ){
+  ) {
     this.router.events.pipe(
       filter((e): e is NavigationStart => e instanceof NavigationStart)
     ).subscribe((e: NavigationStart) => {
-      console.log(e.url);
       this.destinationUrl = e.url;
     });
   }
@@ -50,8 +49,8 @@ export class AdminGuard implements CanActivate, CanActivateChild, CanLoad {
   }
 
   private isLinkAllowedForSupportRole(): boolean {
-    return !(this.destinationUrl.startsWith("/admin/registrar") 
-          || this.destinationUrl.startsWith("/admin/designer")
-          || this.destinationUrl.startsWith("/admin/report"));
+    return !(this.destinationUrl.startsWith("/admin/registrar")
+      || this.destinationUrl.startsWith("/admin/designer")
+      || this.destinationUrl.startsWith("/admin/report"));
   }
 }
