@@ -22,6 +22,7 @@ import { ConfigService, markedOptionsFactory } from './utility/config.service';
 import { UserService } from './utility/user.service';
 import { UtilityModule } from './utility/utility.module';
 import { SupportPillComponent } from './support/support-pill/support-pill.component';
+import { CoreModule } from './core/core.module';
 
 @NgModule({
   declarations: [
@@ -33,6 +34,7 @@ import { SupportPillComponent } from './support/support-pill/support-pill.compon
     BrowserAnimationsModule,
     FormsModule,
     HttpClientModule,
+    CoreModule,
     AppRoutingModule,
     ApiModule,
     FontAwesomeModule,

@@ -54,7 +54,6 @@ $value in $theme-colors {
   }
 }
 
-
 @font-face {
   font-family: "SourceCodePro";
   src: url("assets/fonts/SourceCodePro.ttf") format("truetype");
@@ -216,9 +215,11 @@ app-spinner svg {
 th[align="left"] {
   text-align: left;
 }
+
 th[align="right"] {
   text-align: right;
 }
+
 th[align="center"] {
   text-align: center;
 }

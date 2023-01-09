@@ -17,6 +17,7 @@ import { TicketListComponent } from './ticket-list/ticket-list.component';
 import { SupportPageComponent } from './support-page/support-page.component';
 import { ModalModule } from 'ngx-bootstrap/modal';
 import { TooltipModule } from 'ngx-bootstrap/tooltip';
+import { CoreModule } from '../core/core.module';
 
 @NgModule({
   declarations: [
@@ -31,13 +32,16 @@ import { TooltipModule } from 'ngx-bootstrap/tooltip';
     CommonModule,
     FormsModule,
     RouterModule.forChild([
-      { path: '', component: SupportPageComponent, children: [
-        { path: '', pathMatch: 'full', redirectTo: 'tickets' },
-        { path: 'create', component: TicketFormComponent },
-        { path: 'tickets', component: TicketListComponent },
-        { path: 'tickets/:id', component: TicketDetailsComponent }
-      ]},
+      {
+        path: '', component: SupportPageComponent, children: [
+          { path: '', pathMatch: 'full', redirectTo: 'tickets' },
+          { path: 'create', component: TicketFormComponent },
+          { path: 'tickets', component: TicketListComponent },
+          { path: 'tickets/:id', component: TicketDetailsComponent }
+        ]
+      },
     ]),
+    CoreModule,
     UtilityModule,
     FontAwesomeModule,
     AlertModule,
