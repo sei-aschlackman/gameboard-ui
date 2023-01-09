@@ -1,10 +1,11 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpClientXsrfModule } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, of, Subject } from 'rxjs';
+import { environment } from '../../environments/environment';
 import { ConfigService } from '../utility/config.service';
-import { GamebrainActiveGame, NewUnityChallenge, UnityActiveGame, UnityContext, UnityDeployContext } from '../unity/unity-models';
+import { GamebrainActiveGame, UnityActiveGame, UnityContext, UnityDeployContext } from '../unity/unity-models';
 import { LocalStorageService, StorageKey } from '../utility/local-storage.service';
-import { catchError, filter, first, map, switchMap, tap } from 'rxjs/operators';
+import { catchError, first, map, switchMap, tap } from 'rxjs/operators';
 
 @Injectable({ providedIn: 'root' })
 export class UnityService {
@@ -16,10 +17,12 @@ export class UnityService {
   gameOver$ = new Observable();
   error$ = new Subject<any>();
 
-  constructor (
+  constructor(
     private config: ConfigService,
     private http: HttpClient,
-    private storage: LocalStorageService) { }
+    private storage: LocalStorageService) {
+    this.VERBOSE = !environment.production;
+  }
 
   public endGame(ctx: UnityDeployContext): void {
     this.activeGame$.complete();
@@ -31,13 +34,13 @@ export class UnityService {
     this.validateDeployContext(ctx);
 
     this.log("Checking for an active game for the context:", ctx);
-    const currentGame = await this.getCurrentGame(ctx).toPromise();
-    this.log("Active game?:", currentGame)
+    const gamebrainActiveGame = await this.getGamebrainActiveGame(ctx).toPromise();
+    this.log("Active game?:", gamebrainActiveGame)
 
-    this.log("Checking current game for validity...", currentGame);
-    if (currentGame.gamespaceId) {
-      this.log("It's valid. Starting up existing game.", currentGame);
-      this.startupExistingGame(currentGame);
+    this.log("Checking current game for validity...");
+    if (gamebrainActiveGame.gamespaceId) {
+      this.log("It's valid. Starting up existing game.", gamebrainActiveGame);
+      this.startupExistingGame(ctx, gamebrainActiveGame);
     }
     else {
       this.log("They don't have a current game. Let's fire one up!")
@@ -52,7 +55,7 @@ export class UnityService {
       this.clearLocalStorageKeys(args.ctx.teamId);
     }
 
-    return this.getCurrentGame({ ...args.ctx }).pipe(
+    return this.getGamebrainActiveGame({ ...args.ctx }).pipe(
       first(),
       tap(activeGame => this.log("Found this as the active game:", activeGame)),
       map(game => {
@@ -111,41 +114,40 @@ export class UnityService {
     this.log("Local storage keys cleared.");
   }
 
-  private computeNamespaceKey(teamId: string) {
-    return `unityChallenge:${teamId}`;
-  }
+  private computeNamespaceKey = (teamId: string): string => `unityChallenge:${teamId}`;
 
   private launchGame(ctx: UnityDeployContext) {
     const deployUrl = `${this.API_ROOT}/unity/deploy/${ctx.gameId}/${ctx.teamId}`;
     this.log("Launching a new game at", deployUrl);
 
-    this.http.post<GamebrainActiveGame>(deployUrl, {}).subscribe(deployResult => {
-      this.log("Deployed this ->", deployResult);
-
-      const activeGame: UnityActiveGame = {
-        gamespaceId: deployResult.gamespaceId,
-        headlessUrl: deployResult.headlessUrl,
-        totalPoints: deployResult.totalPoints,
-        vms: deployResult.vms,
-        gameId: ctx.gameId,
-        playerId: ctx.playerId,
-        teamId: ctx.teamId,
-        sessionExpirationTime: ctx.sessionExpirationTime
-      };
-
-      this.log("Starting up game for new team...")
-      this.startupExistingGame(activeGame);
+    this.http.post<GamebrainActiveGame>(deployUrl, {}).subscribe(gamebrainActiveGame => {
+      this.log("Deployed this ->", gamebrainActiveGame, "Starting up game for new team...");
+      this.log("Starting up game for new team...", gamebrainActiveGame)
+      this.startupExistingGame(ctx, gamebrainActiveGame);
     });
   }
 
-  private startupExistingGame(ctx: UnityActiveGame) {
+  private startupExistingGame(deployContext: UnityDeployContext, gamebrainActiveGame: GamebrainActiveGame) {
     try {
-      this.log("Starting pre-launch validation. The active game to run in the client is ->", ctx);
+      this.log("Starting pre-launch validation for an existing game. The active game to run in the client is ->", deployContext, gamebrainActiveGame);
 
       // validation - did we make it?
-      if (!this.isValidActiveGame(ctx)) {
-        this.reportError(`Couldn't resolve the deploy result for team ${ctx.teamId}. No gamespaces available.\n\nContext: ${JSON.stringify(ctx)}`, ctx.teamId);
+      if (!this.isValidActiveGame(gamebrainActiveGame)) {
+        this.reportError(`Couldn't resolve the deploy result for team ${deployContext.teamId}. No gamespaces available.`);
       }
+
+      this.log("Merging data from the deploy context and from Gamebrain.");
+      const unityActiveGame = {
+        gamespaceId: gamebrainActiveGame.gamespaceId,
+        headlessUrl: gamebrainActiveGame.headlessUrl,
+        totalPoints: gamebrainActiveGame.totalPoints,
+        vms: gamebrainActiveGame.vms,
+        gameId: deployContext.gameId,
+        playerId: deployContext.playerId,
+        teamId: deployContext.teamId,
+        sessionExpirationTime: deployContext.sessionExpirationTime
+      };
+      this.log("Final merged data", unityActiveGame);
 
       // we have to do this every time the unity client is booted, even if the player already has
       // challenge data at the other end. here's why:
@@ -156,39 +158,39 @@ export class UnityService {
       // they'll get a gamespaceId when they look for a new game, so it looks like they're joining an existing game, resulting
       // in them not getting challenge data created. so we call every time here, but on the back end, we ensure that they get one
       // challenge per unity game.
-      this.log(`Calling in challenge data for player ${ctx.playerId} on team ${ctx.teamId}. (They'll only ever get one challenge created for this game.)`);
+      this.log(`Calling in challenge data for player ${unityActiveGame.playerId} on team ${unityActiveGame.teamId}. (They'll only ever get one challenge created for this game.)`);
       this.http.post(`${this.API_ROOT}/unity/challenge`, {
-        gameId: ctx.gameId,
-        playerId: ctx.playerId,
-        teamId: ctx.teamId,
-        maxPoints: ctx.totalPoints,
-        gamespaceId: ctx.gamespaceId,
-        vms: ctx.vms
+        gameId: unityActiveGame.gameId,
+        playerId: unityActiveGame.playerId,
+        teamId: unityActiveGame.teamId,
+        maxPoints: unityActiveGame.totalPoints,
+        gamespaceId: unityActiveGame.gamespaceId,
+        vms: unityActiveGame.vms
       }).pipe(first()).subscribe();
 
       // add necessary items to local storage
-      this.createLocalStorageKeys(ctx);
+      this.createLocalStorageKeys(unityActiveGame);
+
+      // emit the result
+      this.activeGame$.next(unityActiveGame);
+      this.log("Game is active. Booting Unity client!", unityActiveGame);
     }
     catch (err: any) {
-      this.reportError(err, ctx.teamId);
-      this.endGame(ctx);
+      this.reportError(err, deployContext.teamId);
+      this.endGame(deployContext);
       return;
     }
-
-    // emit the result
-    this.activeGame$.next(ctx);
-    this.log("Game is active. Booting Unity client!", ctx);
   }
 
-  private getCurrentGame(ctx: UnityContext): Observable<UnityActiveGame> {
+  private getGamebrainActiveGame(ctx: UnityContext): Observable<GamebrainActiveGame> {
     // this comes back as JSON, so we have to parse it into a real object
     return this.http.get<string>(`${this.API_ROOT}/unity/${ctx.gameId}/${ctx.teamId}`).pipe(
       first(),
-      map(gameJson => JSON.parse(gameJson) as UnityActiveGame)
+      map(gameJson => JSON.parse(gameJson) as GamebrainActiveGame)
     );
   }
 
-  private isValidActiveGame = (game: UnityActiveGame) => game.gamespaceId;
+  private isValidActiveGame = (game: GamebrainActiveGame) => game.gamespaceId;
 
   private log(...messages: (string | any)[]) {
     if (this.VERBOSE) {

@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, Input, OnInit, SecurityContext, ViewChild, ViewEncapsulation } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Input, SecurityContext, ViewChild, ViewEncapsulation } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { MarkdownService } from 'ngx-markdown';
 
@@ -36,7 +36,7 @@ export class MorphingTextComponent implements AfterViewInit {
   private _referenceTime = new Date();
   private _textIndex = this.messages.length - 1;
 
-  constructor (
+  constructor(
     private markdown: MarkdownService,
     private sanitizer: DomSanitizer) { }
 

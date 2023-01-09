@@ -29,6 +29,7 @@
     "jquery-ui-dist": "^1.13.1",
     "linkify-html": "^3.0.5",
     "linkifyjs": "^3.0.5",
+    "marked": "^4.2.5",
     "ngx-bootstrap": "^10.1.0",
     "ngx-markdown": "^15.0.0",
     "oidc-client": "^1.11.5",
