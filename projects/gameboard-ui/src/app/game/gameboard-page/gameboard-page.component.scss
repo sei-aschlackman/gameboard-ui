@@ -2,19 +2,24 @@
   img {
     max-height: 150px;
   }
+
   span {
     font-size: 1.5rem;
   }
+
   .small-card {
     width: 120px;
   }
 }
+
 .mapbox {
   max-width: 800px;
 }
+
 .quizbox {
   max-width: 800px;
 }
+
 .mapbox-dot {
   fill: lime;
   stroke: lime;
@@ -22,6 +27,7 @@
   stroke-opacity: 1;
   stroke-width: .25;
 }
+
 .callout {
   position: absolute;
   z-index: 10;
@@ -33,9 +39,11 @@
 .countdown-green {
   color: rgb(0, 191, 0);
 }
+
 .countdown-yellow {
   color: rgb(236, 236, 130);
 }
+
 .countdown-red {
   color: rgb(255, 53, 53);
 }
@@ -45,4 +53,9 @@ iframe {
   // aspect-ratio: 16 / 10;
   margin: auto;
   display: block
+}
+
+.vms-container ul {
+  padding: 0;
+  padding-inline-start: 0;
 }

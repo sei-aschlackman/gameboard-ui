@@ -1,5 +1,9 @@
 @import '../../../scss/variables';
 
+li {
+  list-style-type: circle;
+}
+
 .fixed {
   height: 75vh;
   position: relative;
@@ -14,6 +18,7 @@
   overflow-y: scroll;
 
 }
+
 .detail {
   display: inline-block;
   position: relative;
@@ -21,13 +26,16 @@
   height: 75vh;
   overflow-y: scroll;
 }
+
 .clickable {
   cursor: pointer;
   padding: .5rem;
 }
+
 .clickable:hover {
   background-color: darkslategrey;
 }
+
 .clicked {
   background-color: darken(darkslategrey, 5%);
 }
@@ -35,11 +43,13 @@
 // scroll bar to match theme
 ::-webkit-scrollbar {
   border-radius: 0.25rem;
-  background: $black; 
+  background: $black;
 }
+
 ::-webkit-scrollbar-thumb {
-  background: $dark; 
+  background: $dark;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: darken($dark, 5%)
 }
