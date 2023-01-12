@@ -3,7 +3,6 @@
 
 <form #form="ngForm" [ngFormOptions]="{updateOn: 'blur'}" autocomplete="off">
   <ng-container *ngIf="game$ | async as game; else loading">
-    <!-- <ng-container *ngIf="loaded$ | async else loading"> -->
     <a class="btn btn-link" routerLink="../../">
       <fa-icon [icon]="faArrowLeft"></fa-icon>
       <span>Back</span>
@@ -38,7 +37,7 @@
           <div class="form-control auto-h d-flex align-items-center">
             <label>Hidden</label>
             <label class="btn text-info" btnCheckbox [ngModelOptions]="{updateOn: 'change'}" id="isPublished-input"
-                   name="isPublished" [(ngModel)]="game.isPublished">
+              name="isPublished" [(ngModel)]="game.isPublished">
               <fa-icon *ngIf="!game.isPublished" [icon]="faToggleOff" size="lg"></fa-icon>
               <fa-icon *ngIf="game.isPublished" [icon]="faToggleOn" size="lg"></fa-icon>
             </label>
@@ -62,7 +61,7 @@
         <div class="form-group pb-0 pt-1">
           <label for="competition-input">Series</label>
           <input type="text" list="competition-list" class="form-control" id="competition-input" name="competition"
-                 [(ngModel)]="game.competition">
+            [(ngModel)]="game.competition">
           <datalist id="competition-list">
             <option *ngFor="let o of suggestions.competition | keyvalue: sortByCount;" [value]="o.key">
           </datalist>
@@ -71,7 +70,8 @@
 
         <div class="form-group pb-0 pt-1">
           <label for="track-input">Track</label>
-          <input type="text" list="track-list" class="form-control" id="track-input" name="track" [(ngModel)]="game.track">
+          <input type="text" list="track-list" class="form-control" id="track-input" name="track"
+            [(ngModel)]="game.track">
           <datalist id="track-list">
             <option *ngFor="let o of suggestions.track | keyvalue: sortByCount;" [value]="o.key">
           </datalist>
@@ -80,7 +80,8 @@
 
         <div class="form-group pb-0 pt-1">
           <label for="season-input">Season</label>
-          <input type="text" list="season-list" class="form-control" id="season-input" name="season" [(ngModel)]="game.season">
+          <input type="text" list="season-list" class="form-control" id="season-input" name="season"
+            [(ngModel)]="game.season">
           <datalist id="season-list">
             <option *ngFor="let o of suggestions.season | keyvalue: sortByCount;" [value]="o.key">
           </datalist>
@@ -89,11 +90,12 @@
 
         <div class="form-group pb-0 pt-1">
           <label for="division-input">Division</label>
-          <input type="text" list="division-list" class="form-control" id="division-input" name="division" [(ngModel)]="game.division">
+          <input type="text" list="division-list" class="form-control" id="division-input" name="division"
+            [(ngModel)]="game.division">
           <datalist id="division-list">
             <option *ngFor="let o of suggestions.division | keyvalue: sortByCount;" [value]="o.key">
           </datalist>
-          <small>specify the attended audience level (i.e. Open, Amatuer, Pro, etc.) </small>
+          <small>specify the intended audience level (i.e. Open, Amateur, Pro, etc.) </small>
         </div>
 
         <div class="form-group pb-0 pt-1">
@@ -110,6 +112,10 @@
       <div class="col-md-6 col-sm-12">
         <div class="form-group pb-1 pt-1">
           <label for="logo-input">Card Image</label>
+          <p class="help-text">
+            Select an image for the game card shown in the public-facing portion of the app. For best results, use an
+            image with an aspect ratio of <strong>1:1.44</strong> (e.g. 750x1080).
+          </p>
           <app-dropzone inputId="logo-input" btnClass="btn btn-sm btn-primary" (dropped)="upload($event, 'card')">
             <button class="btn btn-sm btn-outline-warning mx-2" (click)="clearImage()">
               <fa-icon [icon]="faTrash"></fa-icon>
@@ -121,7 +127,8 @@
 
         <div class="form-group pb-0 pt-1">
           <label for="cardtext1-input">Card Text Top</label>
-          <input type="text" list="cardText1-list" class="form-control" id="cardtext1-input" name="cardText1" [(ngModel)]="game.cardText1">
+          <input type="text" list="cardText1-list" class="form-control" id="cardtext1-input" name="cardText1"
+            [(ngModel)]="game.cardText1">
           <datalist id="cardText1-list">
             <option *ngFor="let o of suggestions.cardText1 | keyvalue: sortByCount;" [value]="o.key">
           </datalist>
@@ -130,7 +137,8 @@
 
         <div class="form-group pb-0 pt-1">
           <label for="cardtext2-input">Card Text Middle</label>
-          <input type="text" list="cardText2-list" class="form-control" id="cardtext2-input" name="cardText2" [(ngModel)]="game.cardText2">
+          <input type="text" list="cardText2-list" class="form-control" id="cardtext2-input" name="cardText2"
+            [(ngModel)]="game.cardText2">
           <datalist id="cardText2-list">
             <option *ngFor="let o of suggestions.cardText2 | keyvalue: sortByCount;" [value]="o.key">
           </datalist>
@@ -139,7 +147,8 @@
 
         <div class="form-group pb-0 pt-1">
           <label for="cardtext3-input">Card Text Bottom</label>
-          <input type="text" list="cardText3-list" class="form-control" id="cardtext3-input" name="cardText3" [(ngModel)]="game.cardText3">
+          <input type="text" list="cardText3-list" class="form-control" id="cardtext3-input" name="cardText3"
+            [(ngModel)]="game.cardText3">
           <datalist id="cardText3-list">
             <option *ngFor="let o of suggestions.cardText3 | keyvalue: sortByCount;" [value]="o.key">
           </datalist>
@@ -150,8 +159,8 @@
       <div class="col-12">
         <div class="form-group pb-0 pt-1">
           <label for="gameMarkdown-input">Lobby Markdown</label>
-          <textarea rows="11" type="text" class="form-control" id="gameMarkdown-input"
-            name="gameMarkdown" [(ngModel)]="game.gameMarkdown"></textarea>
+          <textarea rows="11" type="text" class="form-control" id="gameMarkdown-input" name="gameMarkdown"
+            [(ngModel)]="game.gameMarkdown"></textarea>
           <small>presented in the game lobby</small>
         </div>
       </div>
@@ -159,8 +168,8 @@
       <div class="col-12">
         <div class="form-group pb-0 pt-1">
           <label for="feedbackConfig-input">Feedback Questions</label>
-          <textarea rows="11" type="text" class="form-control" id="feedbackConfig-input"
-            name="feedbackConfig" [(ngModel)]="game.feedbackConfig" (input)="yamlChanged()"></textarea>
+          <textarea rows="11" type="text" class="form-control" id="feedbackConfig-input" name="feedbackConfig"
+            [(ngModel)]="game.feedbackConfig" (input)="yamlChanged()"></textarea>
           <div class="d-flex justify-content-between">
             <small>follow example YAML format</small>
             <small [class]="feedbackWarning ? 'p-1 bg-danger rounded' : ''">
@@ -173,19 +182,22 @@
       <div class="col-12">
         <div class="form-group pb-0 pt-1">
           <label for="certificateTemplate-input">Certificate Template</label>
-          <textarea rows="11" type="text" class="form-control" id="certificateTemplate-input"
-            name="certificateTemplate" [(ngModel)]="game.certificateTemplate"></textarea>
+          <textarea rows="11" type="text" class="form-control" id="certificateTemplate-input" name="certificateTemplate"
+            [(ngModel)]="game.certificateTemplate"></textarea>
           <small>design with HTML and inline/internal CSS; use a 11:8.5 aspect ratio</small>
-          <button class="btn btn-sm btn-link-white" [(ngModel)]="showCertificateInfo" [ngModelOptions]="{standalone: true}" btnCheckbox>
+          <button class="btn btn-sm btn-link-white" [(ngModel)]="showCertificateInfo"
+            [ngModelOptions]="{standalone: true}" btnCheckbox>
             <fa-icon [icon]="faInfoCircle"></fa-icon>
           </button>
-          <div class="ml-4 px-2"*ngIf="showCertificateInfo">
+          <div class="ml-4 px-2" *ngIf="showCertificateInfo">
             <p class="cert-info mb-2">
-    Insert dynamic content by referring to a property with double-curly syntax <code>{{"\{\{game_name\}\}"}}</code>. For example, <code>&lt;h1&gt;{{"\{\{leaderboard_name\}\}"}}&lt;/h1&gt;</code>. <br>
-    The following properties will get replaced when a player certificate renders:
+              Insert dynamic content by referring to a property with double-curly syntax
+              <code>{{"\{\{game_name\}\}"}}</code>. For example,
+              <code>&lt;h1&gt;{{"\{\{leaderboard_name\}\}"}}&lt;/h1&gt;</code>. <br>
+              The following properties will get replaced when a player certificate renders:
             </p>
             <pre class="mb-1">
-      game_name &mdash; Name of this game 
+      game_name &mdash; Name of this game
       competition &mdash; Competition type of this game
       season &mdash; Season of this game
       round &mdash; Round of this game
@@ -198,8 +210,10 @@
       player_count &mdash; Number of players who participated in this game
       team_count &mdash; Number of teams who participated in this game</pre>
             <p class="cert-info mb-2">
-      Tip: Create an outer div with fixed height and width and <code>position: relative</code>. Create inner divs with <code>position: absolute; text-align: center;</code> and set textbox width and X/Y position with <code>top: __px; left: __px; width: __px;</code>.
-      To add a background image, use <code>background-size: 100% 100%; background-image: url('URL_HERE');</code>
+              Tip: Create an outer div with fixed height and width and <code>position: relative</code>. Create inner
+              divs with <code>position: absolute; text-align: center;</code> and set textbox width and X/Y position with
+              <code>top: __px; left: __px; width: __px;</code>.
+              To add a background image, use <code>background-size: 100% 100%; background-image: url('URL_HERE');</code>
             </p>
           </div>
         </div>

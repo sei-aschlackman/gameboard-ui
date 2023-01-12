@@ -3,16 +3,14 @@
 
 import { Pipe, PipeTransform } from '@angular/core';
 
-@Pipe({name: 'ago'})
+@Pipe({ name: 'ago' })
 export class AgedDatePipe implements PipeTransform {
     transform(date: any): string {
         let r = '';
         const n = new Date();
         const t = new Date(date); // + " GMT");
-        const tag = [ 's', 'm', 'h', 'd' ];
-        // console.log(date);
-        // console.log(n);
-        // console.log(t);
+        const tag = ['s', 'm', 'h', 'd'];
+
         let d: number = n.valueOf() - t.valueOf();
         const a: number[] = [
             d / 1000,
