@@ -12,7 +12,7 @@ import { GameService } from '../../api/game.service';
 import { Player, PlayerSearch, TimeWindow } from '../../api/player-models';
 import { PlayerService } from '../../api/player.service';
 import { UnityService } from '../../unity/unity.service';
-import { ClipboardService } from '../../utility/clipboard.service';
+import { ClipboardService } from '../../utility/services/clipboard.service';
 
 @Component({
   selector: 'app-player-registrar',

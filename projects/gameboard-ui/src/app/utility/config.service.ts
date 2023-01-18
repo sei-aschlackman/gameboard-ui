@@ -9,7 +9,7 @@ import { catchError, map, tap } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { Location, PlatformLocation } from '@angular/common';
 import { MarkedOptions, MarkedRenderer } from 'ngx-markdown';
-import { LocalStorageService, StorageKey } from './local-storage.service';
+import { LocalStorageService, StorageKey } from './services/local-storage.service';
 
 @Injectable({ providedIn: 'root' })
 export class ConfigService {
@@ -56,7 +56,6 @@ export class ConfigService {
     year: 'numeric',
     hour: 'numeric',
     minute: 'numeric'
-    // hour12: false
   };
 
   _shortdate_formatter = new Intl.DateTimeFormat(

@@ -9,7 +9,7 @@ import { Game, NewGame } from '../../api/game-models';
 import { GameService } from '../../api/game.service';
 import { Search } from '../../api/models';
 import * as YAML from 'yaml';
-import { ClipboardService } from '../../utility/clipboard.service';
+import { ClipboardService } from '../../utility/services/clipboard.service';
 
 @Component({
   selector: 'app-game-designer',
@@ -30,7 +30,7 @@ export class GameDesignerComponent implements OnInit {
   faCopy = faCopy;
   faTrash = faTrash;
 
-  constructor(
+  constructor (
     private api: GameService,
     private clipboard: ClipboardService
   ) {
@@ -52,7 +52,7 @@ export class GameDesignerComponent implements OnInit {
   }
 
   create(): void {
-    this.creating$.next({name: 'NewGame'} as Game);
+    this.creating$.next({ name: 'NewGame' } as Game);
   }
 
   delete(game: Game): void {
@@ -82,7 +82,7 @@ export class GameDesignerComponent implements OnInit {
   }
 
   clone(game: Game): void {
-    this.creating$.next({...game, name: `${game.name}_CLONE`, isClone: true});
+    this.creating$.next({ ...game, name: `${game.name}_CLONE`, isClone: true });
   }
 
   clip(game: Game): void {
@@ -106,7 +106,7 @@ export class GameDesignerComponent implements OnInit {
       const fr = new FileReader();
       fr.onload = ev => {
         const model = YAML.parse(fr.result as string) as Game[];
-        model.forEach(m => this.creating$.next({...m, isClone: true}));
+        model.forEach(m => this.creating$.next({ ...m, isClone: true }));
       }
       if (file.size < 8192) {
         fr.readAsText(file);
