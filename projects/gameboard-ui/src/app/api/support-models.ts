@@ -1,7 +1,6 @@
 // Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
-import { SafeResourceUrl } from "@angular/platform-browser";
 import { Challenge, ChallengeOverview, ChallengeSummary } from "./board-models";
 import { Player, PlayerOverview } from "./player-models";
 import { UserSummary } from "./user-models";
@@ -120,7 +119,9 @@ export interface TicketActivity {
   status: string;
   assigneeId: string;
   type: ActivityType;
-  timestamp: Date;
+  // this seems to come down from the API as a string
+  // despite being a date. compensate here for now.
+  timestamp: string;
 
   attachments: string[];
   attachmentFiles: AttachmentFile[]
@@ -155,11 +156,10 @@ export interface TicketChallengeGroup {
   count: number;
 }
 
-export enum ActivityType
-{
-    comment = 0,
-    statusChange,
-    assigneeChange,
+export enum ActivityType {
+  comment = 0,
+  statusChange,
+  assigneeChange,
 }
 
 export interface AttachmentFile {
@@ -167,7 +167,8 @@ export interface AttachmentFile {
   extension: string;
 
   // Not SafeResourceUrl so it can be retrieved in a function
-  fullPath: string
+  absoluteUrl: string;
+  fullPath: string;
   showPreview: boolean;
 }
 

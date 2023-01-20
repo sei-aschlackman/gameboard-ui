@@ -31,6 +31,7 @@
               "projects/gameboard-ui/src/assets"
             ],
             "styles": [
+              "node_modules/toastify-js/src/toastify.css",
               "projects/gameboard-ui/src/styles.scss"
             ],
             "scripts": [
@@ -106,6 +107,7 @@
               "projects/gameboard-ui/src/assets"
             ],
             "styles": [
+              "node_modules/toastify-js/src/toastify.css",
               "projects/gameboard-ui/src/styles.scss"
             ],
             "scripts": []
