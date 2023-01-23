@@ -87,7 +87,7 @@ export class ConfigService {
     { ...this.datedisplay_options_with_seconds, timeZoneName: 'short' }
   );
 
-  constructor (
+  constructor(
     private http: HttpClient,
     private location: Location,
     private storage: LocalStorageService,
@@ -168,7 +168,6 @@ export class ConfigService {
           return of({} as Settings);
         }),
         tap(s => {
-          console.log("loading settings", this.basehref + this.url);
           this.settings = { ...this.settings, ...s };
           this.settings.oidc = { ...this.settings.oidc, ...s.oidc };
           this.settings$.next(this.settings);
