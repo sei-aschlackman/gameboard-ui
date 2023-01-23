@@ -9,7 +9,7 @@ import { catchError, map, tap } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { Location, PlatformLocation } from '@angular/common';
 import { MarkedOptions, MarkedRenderer } from 'ngx-markdown';
-import { LocalStorageService, StorageKey } from './local-storage.service';
+import { LocalStorageService, StorageKey } from './services/local-storage.service';
 
 @Injectable({ providedIn: 'root' })
 export class ConfigService {
@@ -56,7 +56,6 @@ export class ConfigService {
     year: 'numeric',
     hour: 'numeric',
     minute: 'numeric'
-    // hour12: false
   };
 
   _shortdate_formatter = new Intl.DateTimeFormat(
@@ -88,7 +87,7 @@ export class ConfigService {
     { ...this.datedisplay_options_with_seconds, timeZoneName: 'short' }
   );
 
-  constructor (
+  constructor(
     private http: HttpClient,
     private location: Location,
     private storage: LocalStorageService,
@@ -169,7 +168,6 @@ export class ConfigService {
           return of({} as Settings);
         }),
         tap(s => {
-          console.log("loading settings", this.basehref + this.url);
           this.settings = { ...this.settings, ...s };
           this.settings.oidc = { ...this.settings.oidc, ...s.oidc };
           this.settings$.next(this.settings);

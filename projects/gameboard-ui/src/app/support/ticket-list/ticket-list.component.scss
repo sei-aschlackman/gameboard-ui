@@ -1,15 +1,20 @@
+.filters {
+  margin-bottom: 1rem;
+}
 
-.list > div {
+.list>div {
   border-radius: 0;
   border: 1px solid #222;
-  border-top:0;
+  border-top: 0;
 }
-.list > div:first-child {
+
+.list>div:first-child {
   border-top-left-radius: 0.25rem;
   border-top-right-radius: 0.25rem;
   border-top: 1px solid #222;
 }
-.list > div:last-child {
+
+.list>div:last-child {
   border-bottom-left-radius: 0.25rem;
   border-bottom-right-radius: 0.25rem;
 }

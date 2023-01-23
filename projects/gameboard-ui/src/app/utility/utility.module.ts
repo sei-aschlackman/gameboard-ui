@@ -38,6 +38,8 @@ import { UntilPipe } from './pipes/until-date.pipe';
 import { RouterModule } from '@angular/router';
 import { ImagestackComponent } from './components/imagestack/imagestack.component';
 import { MorphingTextComponent } from './components/morphing-text/morphing-text.component';
+import { FriendlyTimePipe } from './pipes/friendly-time.pipe';
+import { NAVIGATOR } from './services/navigator.service';
 
 const components = [
   ClipspanComponent,
@@ -61,6 +63,7 @@ const components = [
   UntagPipe,
   YamlPipe,
   ClockPipe,
+  FriendlyTimePipe,
   SafeUrlPipe,
   ObserveOrderPipe,
   MatchesTermPipe,
@@ -72,6 +75,7 @@ const components = [
 @NgModule({
   declarations: [...components],
   exports: [...components],
+  providers: [{ provide: NAVIGATOR, useValue: navigator }],
   imports: [
     CommonModule,
     FormsModule,

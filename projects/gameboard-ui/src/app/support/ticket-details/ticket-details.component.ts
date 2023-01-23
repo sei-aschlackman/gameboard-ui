@@ -15,15 +15,17 @@ import { EditData, SuggestionOption } from '../../utility/components/inplace-edi
 import { ConfigService } from '../../utility/config.service';
 import { UserService as LocalUserService } from '../../utility/user.service';
 import { NotificationService } from '../../utility/notification.service';
-import * as linkify from 'linkifyjs';
 import linkifyHtml from 'linkify-html';
+import { ClipboardService } from "../../utility/services/clipboard.service";
+import { ToastService } from '../../utility/services/toast.service';
+import { FontAwesomeService } from '../../utility/services/font-awesome.service';
 
 @Component({
   selector: 'app-ticket-details',
   templateUrl: './ticket-details.component.html',
   styleUrls: ['./ticket-details.component.scss']
 })
-export class TicketDetailsComponent implements OnInit, AfterViewInit, OnDestroy {
+export class TicketDetailsComponent implements AfterViewInit, OnDestroy {
   @ViewChild('modal') modal!: ModalDirective;
 
   ctx$: Observable<{ ticket: Ticket; canManage: boolean; }>;
@@ -80,8 +82,10 @@ export class TicketDetailsComponent implements OnInit, AfterViewInit, OnDestroy 
   selectedObjectUrls: SafeResourceUrl[] = this.attachmentObjectUrls;
   selectedIndex: number = 0;
 
-  constructor(
+  constructor (
     private api: SupportService,
+    private clipboard: ClipboardService,
+    private faService: FontAwesomeService,
     private playerApi: PlayerService,
     private userApi: UserService,
     private route: ActivatedRoute,
@@ -89,7 +93,8 @@ export class TicketDetailsComponent implements OnInit, AfterViewInit, OnDestroy 
     private sanitizer: DomSanitizer,
     private local: LocalUserService,
     private http: HttpClient,
-    hub: NotificationService
+    private hub: NotificationService,
+    private toastsService: ToastService
   ) {
 
     const canManage$ = local.user$.pipe(
@@ -98,10 +103,10 @@ export class TicketDetailsComponent implements OnInit, AfterViewInit, OnDestroy 
     );
 
     const ticket$ = combineLatest([
-        route.params,
-        this.refresh$,
-        // timer(0, 30_000) // refresh-causing line - runs every 30 seconds
-      ]).pipe(
+      route.params,
+      this.refresh$,
+      // timer(0, 30_000) // refresh-causing line - runs every 30 seconds
+    ]).pipe(
       map(([p, r]) => p),
       filter(p => !!p.id && (!this.editingContent || this.savingContent)), // don't refresh data if editing and not saving yet
       tap(p => this.key = p.id),
@@ -109,7 +114,7 @@ export class TicketDetailsComponent implements OnInit, AfterViewInit, OnDestroy 
       tap(t => {
         this.editingContent = false;
         this.savingContent = false;
-        this.changedTicket = {...t};
+        this.changedTicket = { ...t };
         this.id = t.id;
       }),
       tap(t => {
@@ -120,27 +125,25 @@ export class TicketDetailsComponent implements OnInit, AfterViewInit, OnDestroy 
         });
       }),
       tap(a => {
-        a.attachmentFiles = a.attachments.map(f => this.mapFile(f, this.id));
         // Initialize ticket attachment URL object
         this.attachmentObjectUrls = new Array<SafeResourceUrl>(a.attachmentFiles.length);
         // Set the selected object urls
         this.selectedObjectUrls = this.attachmentObjectUrls;
         // Fetch each original ticket's attachment file
         a.attachmentFiles.forEach((f, i) => this.fetchFile(f, i));
-        a.activity.forEach(g => g.attachmentFiles = g.attachments.map(f => this.mapFile(f, `${this.id}/${g.id}`)));
         // Initialize comment attachment URL object - store it in a map to account for multiple comments
         a.activity.forEach((g, i) => this.commentAttachmentMap.set(g.id, new Array<SafeResourceUrl>(g.attachmentFiles.length)));
         // Fetch each comment's attachments
         a.activity.forEach((g, i) => g.attachmentFiles.forEach((f, j) => this.fetchFile(f, j, g)));
         a.selfCreated = a.creatorId == a.requesterId;
         a.created = new Date(a.created);
-        let recent = new Date(new Date().getTime() - (5)*60_000);
+        let recent = new Date(new Date().getTime() - (5) * 60_000);
         a.canUpdate = a.created > recent;
       })
     );
 
-    this.ctx$ = combineLatest([ ticket$, canManage$]).pipe(
-      map(([ticket, canManage]) => ({ticket: ticket, canManage: canManage}))
+    this.ctx$ = combineLatest([ticket$, canManage$]).pipe(
+      map(([ticket, canManage]) => ({ ticket: ticket, canManage: canManage }))
     );
 
     this.initFiltering();
@@ -185,10 +188,6 @@ export class TicketDetailsComponent implements OnInit, AfterViewInit, OnDestroy 
     );
   }
 
-  ngOnInit(): void {
-
-  }
-
   ngAfterViewInit(): void {
     this.modal?.onHide?.subscribe(
       () => {
@@ -228,23 +227,6 @@ export class TicketDetailsComponent implements OnInit, AfterViewInit, OnDestroy 
     this.newCommentAttachments = files;
   }
 
-  mapFile(filename: string, path: string): AttachmentFile {
-    let ext = filename.split('.').pop() || "";
-    let fullPath = `${this.config.supporthost}/${path}/${filename}`;
-    // this.api.getFile(fullPath).subscribe(
-    //   (result) => {
-    //   }
-    // );
-    return {
-      filename: filename,
-      extension: ext,
-      // fullPath: this.sanitizer.bypassSecurityTrustResourceUrl(fullPath),
-      fullPath: fullPath,
-      // This should be composed of images only
-      showPreview: !!ext.toLowerCase().match(/(png|jpeg|jpg|gif|webp|svg)/)
-    };
-  }
-
   // Expand an image in a new viewer window.
   enlarge(attachmentList: AttachmentFile[], index: number, objectUrls: SafeResourceUrl[] | undefined) {
     // Abort if the list of URLs we reference isn't initialized yet
@@ -273,10 +255,6 @@ export class TicketDetailsComponent implements OnInit, AfterViewInit, OnDestroy 
     this.changed$.next(this.changedTicket);
   }
 
-  startEditCommentContent() {
-
-  }
-
   startEditAssignee() {
     this.resetEditing();
     this.assignees.isEditing = true;
@@ -284,8 +262,8 @@ export class TicketDetailsComponent implements OnInit, AfterViewInit, OnDestroy 
     if (!this.assignees.loaded) {
       this.api.listSupport({}).subscribe(
         (a) => {
-          this.assignees.allOptions = a.map(u => ({name:u.approvedName, secondary: u.id.slice(0,8), data:u}));
-          this.assignees.allOptions.push({name: "None", secondary:"", data:{}});
+          this.assignees.allOptions = a.map(u => ({ name: u.approvedName, secondary: u.id.slice(0, 8), data: u }));
+          this.assignees.allOptions.push({ name: "None", secondary: "", data: {} });
           this.assignees.filteredOptions = this.assignees.allOptions;
           this.assignees.loaded = true;
         }
@@ -300,7 +278,7 @@ export class TicketDetailsComponent implements OnInit, AfterViewInit, OnDestroy 
     if (!this.labels.loaded) {
       this.api.listLabels({}).subscribe(
         (a) => {
-          this.labels.allOptions = a.map(l => ({name:l, secondary: "", data:l}));
+          this.labels.allOptions = a.map(l => ({ name: l, secondary: "", data: l }));
           this.labels.filtering$.next("");
           this.labels.loaded = true;
         }
@@ -315,10 +293,10 @@ export class TicketDetailsComponent implements OnInit, AfterViewInit, OnDestroy 
     this.challenges.isEditing = true;
 
     if (!this.challenges.loaded) {
-      this.api.listUserChallenges({uid: this.changedTicket?.requesterId!}).subscribe(
+      this.api.listUserChallenges({ uid: this.changedTicket?.requesterId! }).subscribe(
         (a) => {
-          this.challenges.allOptions = a.map(c => ({name:c.name, secondary: c.id.slice(0,8)+(!!c.tag ? ' '+c.tag : ''), data:c}));
-          this.challenges.allOptions.push({name: "None", secondary:"", data:{}});
+          this.challenges.allOptions = a.map(c => ({ name: c.name, secondary: c.id.slice(0, 8) + (!!c.tag ? ' ' + c.tag : ''), data: c }));
+          this.challenges.allOptions.push({ name: "None", secondary: "", data: {} });
           this.challenges.filtering$.next("");
           this.challenges.loaded = true;
         }
@@ -332,10 +310,10 @@ export class TicketDetailsComponent implements OnInit, AfterViewInit, OnDestroy 
     this.resetEditing();
     this.sessions.isEditing = true;
     if (!this.sessions.loaded) {
-      this.playerApi.list({uid:this.changedTicket?.requesterId!, sort:'time'}).subscribe(
+      this.playerApi.list({ uid: this.changedTicket?.requesterId!, sort: 'time' }).subscribe(
         (a) => {
-          this.sessions.allOptions = a.map(c => ({name:c.gameName, secondary: c.approvedName, data:c}));
-          this.sessions.allOptions.push({name: "None", secondary:"", data:{}});
+          this.sessions.allOptions = a.map(c => ({ name: c.gameName, secondary: c.approvedName, data: c }));
+          this.sessions.allOptions.push({ name: "None", secondary: "", data: {} });
           this.sessions.filteredOptions = this.sessions.allOptions;
           this.sessions.loaded = true;
         }
@@ -350,7 +328,7 @@ export class TicketDetailsComponent implements OnInit, AfterViewInit, OnDestroy 
     if (!this.requesters.loaded) {
       this.userApi.list({}).subscribe(
         (a) => {
-          this.requesters.allOptions = a.map(u => ({name:u.approvedName, secondary: u.id.slice(0,8), data:u}));
+          this.requesters.allOptions = a.map(u => ({ name: u.approvedName, secondary: u.id.slice(0, 8), data: u }));
           this.requesters.filteredOptions = this.requesters.allOptions;
           this.requesters.loaded = true;
         }
@@ -375,7 +353,7 @@ export class TicketDetailsComponent implements OnInit, AfterViewInit, OnDestroy 
 
   selectAssignToMe() {
     if (!!this.currentUser) {
-      this.changedTicket!.assignee = {id: this.currentUser.id, approvedName: this.currentUser.approvedName} as UserSummary;
+      this.changedTicket!.assignee = { id: this.currentUser.id, approvedName: this.currentUser.approvedName } as UserSummary;
       this.changedTicket!.assigneeId = this.currentUser.id;
       this.changed$.next(this.changedTicket)
     }
@@ -435,7 +413,7 @@ export class TicketDetailsComponent implements OnInit, AfterViewInit, OnDestroy 
         });
 
         if (!!a && this.labels.filteredOptions?.length == 0 && !this.currentLabels.has(a)) {
-          this.labels.filteredOptions!.push({name: a, secondary: "(New Label)", data:a});
+          this.labels.filteredOptions!.push({ name: a, secondary: "(New Label)", data: a });
         }
       }
     );
@@ -486,6 +464,16 @@ export class TicketDetailsComponent implements OnInit, AfterViewInit, OnDestroy 
         });
       }
     );
+  }
+
+  public async copyToMarkdown(ticket: Ticket) {
+    this.api.getTicketMarkdown(ticket).pipe(first()).subscribe(async md => {
+      await this.clipboard.copy(md);
+      this.toastsService.show({
+        faIcon: this.faService.faClipboard,
+        text: "Ticket markdown copied"
+      });
+    });
   }
 
   public detectLinks(body: string, id: string): void {
