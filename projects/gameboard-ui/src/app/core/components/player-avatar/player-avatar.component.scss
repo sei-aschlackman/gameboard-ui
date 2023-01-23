@@ -1,0 +1,9 @@
+.player-avatar-component {
+    display: inline-block;
+    aspect-ratio: 1 / 1;
+    width: 2rem;
+
+    object-fit: contain;
+    border: dashed 1px white;
+    border-radius: 50%;
+}
