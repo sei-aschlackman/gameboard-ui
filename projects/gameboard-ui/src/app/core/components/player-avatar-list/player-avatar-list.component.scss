@@ -1,0 +1,31 @@
+// $maxPlayers: 5;
+
+.player-avatar-list-component {
+    padding: 0 0.5rem;
+}
+
+ul {
+    margin: 0;
+    padding: 0;
+    width: 6rem;
+
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+
+    // TODO: literally don't have time to figure out why this isn't doing what i expect
+    // @for $i from 0 through $maxPlayers - 1 {
+    //     li.avatar-position-#{i} {
+    //         z-index: $z-index-relative + ($maxPlayers - $i);
+    //         transform: translateX(calc(-2rem - calc($i * 8px)));
+    //     }
+    // }
+}
+
+.avatar-position-1 {
+    transform: translateX(-30px);
+}
+
+.avatar-position-2 {
+    transform: translateX(-60px);
+}

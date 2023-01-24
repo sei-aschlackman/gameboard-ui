@@ -1,7 +1,6 @@
 // Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
-import { SafeHtml } from "@angular/platform-browser";
 import { ChallengeResult } from "./board-models";
 import { Game } from "./game-models";
 import { Search } from "./models";
@@ -31,6 +30,8 @@ export interface Player {
   advanced: boolean;
 
   sponsorLogo: string;
+  sponsorList: string[];
+
   pendingName: string;
   session: TimeWindow;
   checked: boolean;
@@ -64,7 +65,7 @@ export class TimeWindow {
       : this.isDuring && end > 0
         ? end - ts
         : 0
-    ;
+      ;
   }
 }
 
@@ -209,6 +210,7 @@ export interface TeamSummary {
   id: string;
   name: string;
   sponsor: string;
+  sponsorLogo: string;
   members: string[];
 }
 

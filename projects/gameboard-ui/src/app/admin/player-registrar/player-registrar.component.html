@@ -16,7 +16,8 @@
           <span>Search</span>
         </span>
       </div>
-      <input type="search" [(ngModel)]="search.term" placeholder="term" class="form-control" (input)="refresh$.next(true)">
+      <input type="search" [(ngModel)]="search.term" placeholder="term" class="form-control"
+        (input)="refresh$.next(true)">
     </div>
     <div>
       <button class="mr-1 btn btn-link text-warning btn-sm" (click)="toggleFilter('active')">
@@ -62,14 +63,16 @@
     </div>
   </div>
 
-  <small *ngIf="source.length === 100" class="text-warning">Results limited to 100. Refine search term if necessary.</small>
-  <hr/>
+  <small *ngIf="source.length === 100" class="text-warning">Results limited to 100. Refine search term if
+    necessary.</small>
+  <hr />
 
   <div class="mb-2 d-flex align-items-baseline">
     <small class="text-warning mx-2">count: {{ctx.players.length}}</small>
     <ng-container *ngIf="ctx.players.length">
       <small class="text-warning mx-2">selected: {{selected.length}}</small>
-      <button *ngIf="selected.length" class="btn btn-sm btn-outline-warning py-0 mx-2" (click)="clearSelected()">x</button>
+      <button *ngIf="selected.length" class="btn btn-sm btn-outline-warning py-0 mx-2"
+        (click)="clearSelected()">x</button>
       <span class="text-warning"> | </span>
       <button class="btn btn-sm btn-outline-warning py-0 ml-2" (click)="exportCsv(ctx.players)">
         <fa-icon [icon]="faCopy"></fa-icon>
@@ -83,12 +86,14 @@
         <fa-icon [icon]="faArrowDown"></fa-icon>
         <span>rerank</span>
       </button>
-      <button *ngIf="selected.length" class="btn btn-sm btn-outline-warning py-0 ml-2" (click)="advanceOptions=!advanceOptions">
+      <button *ngIf="selected.length" class="btn btn-sm btn-outline-warning py-0 ml-2"
+        (click)="advanceOptions=!advanceOptions">
         <fa-icon [icon]="faStar"></fa-icon>
         <span>advance</span>
       </button>
       <span class="spacer"></span>
-      <label class="btn btn-sm btn-outline-secondary py-0 mx-2" [(ngModel)]="autorefresh" btnCheckbox tabindex="0" role="button">
+      <label class="btn btn-sm btn-outline-secondary py-0 mx-2" [(ngModel)]="autorefresh" btnCheckbox tabindex="0"
+        role="button">
         <fa-icon [icon]="faSync"></fa-icon>
         <span>{{autorefresh ? 'auto' : 'off'}}</span>
       </label>
@@ -108,19 +113,20 @@
   </div>
 
   <div *ngFor="let player of ctx.players; trackBy:trackById"
-    class="d-flex mb-1 mx-2 p-2 flex-wrap align-items-baseline rounded" [class.bg-secondary]="!player.checked"[class.pop-success]="player.checked">
+    class="d-flex mb-1 mx-2 p-2 flex-wrap align-items-center rounded" [class.bg-secondary]="!player.checked"
+    [class.pop-success]="player.checked">
     <div class="mx-2">
       <button class="btn btn-secondary btn-sm" (click)="toggleSelected(player)">
         <fa-icon [icon]="player.checked ? faChecked : faUnChecked"></fa-icon>
       </button>
     </div>
-    <div class="">
-      <img [src]="player.sponsorLogo" [alt]="player.sponsor" width="48px">
+    <app-player-avatar-list [sponsorUris]="player.sponsorList"></app-player-avatar-list>
+    <div class="ml-2">
       <span *ngIf="player.advanced" class="text-success ml-2">
         <fa-icon [icon]="faStar"></fa-icon>
       </span>
-      <span class="mx-2">{{player.approvedName}}</span>
-      <span class="text-muted">{{player.pendingName}}</span><br/>
+      <span>{{player.approvedName}}</span>
+      <span class="text-muted">{{player.pendingName}}</span><br />
       <small class="text-muted">
         <span>player: </span>&nbsp;
         <app-clipspan class="mr-2">{{player.id | slice:0:8}}</app-clipspan>
@@ -128,7 +134,8 @@
         <app-clipspan class="mr-2">{{player.teamId | slice:0:8}}</app-clipspan>
       </small>
     </div>
-    <button *ngIf="player.name!==player.approvedName" class="btn btn-outline-info btn-sm mx-1" (click)="approveName(player)">
+    <button *ngIf="player.name!==player.approvedName" class="btn btn-outline-info btn-sm mx-1"
+      (click)="approveName(player)">
       <fa-icon [icon]="faCheck"></fa-icon>
       <span>Approve</span>
     </button>
@@ -162,19 +169,22 @@
       </app-confirm-button>
     </div>
     <div *ngIf="viewed === player" class="col-12">
-        <div class="form-group">
-          <label class="mb-0" for="name-input">Approved Name</label>
-          <input id="name-input" class="form-control" type="text" [(ngModel)]="player.approvedName" (change)="update(player)">
-          <small></small>
-        </div>
-        <div class="form-group">
-          <label class="mb-0" for="reason-input">Disapproved Reason</label>
-          <input id="reason-input" class="form-control" type="text" [(ngModel)]="player.nameStatus" (change)="update(player)">
-          <small> <button *ngFor="let reason of reasons" class="btn btn-link btn-sm" (click)="player.nameStatus = reason; update(player)">
+      <div class="form-group">
+        <label class="mb-0" for="name-input">Approved Name</label>
+        <input id="name-input" class="form-control" type="text" [(ngModel)]="player.approvedName"
+          (change)="update(player)">
+        <small></small>
+      </div>
+      <div class="form-group">
+        <label class="mb-0" for="reason-input">Disapproved Reason</label>
+        <input id="reason-input" class="form-control" type="text" [(ngModel)]="player.nameStatus"
+          (change)="update(player)">
+        <small> <button *ngFor="let reason of reasons" class="btn btn-link btn-sm"
+            (click)="player.nameStatus = reason; update(player)">
             {{reason}}
           </button></small>
-        </div>
-        <app-player-session [id]="player.teamId"></app-player-session>
+      </div>
+      <app-player-session [id]="player.teamId"></app-player-session>
     </div>
   </div>
 </ng-container>

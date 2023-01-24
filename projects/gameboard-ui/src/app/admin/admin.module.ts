@@ -35,6 +35,7 @@ import { ModalModule } from 'ngx-bootstrap/modal';
 import { SupportReportComponent } from './support-report/support-report.component';
 import { PlayerNamesComponent } from './player-names/player-names.component';
 import { ParticipationReportComponent } from './participation-report/participation-report.component';
+import { CoreModule } from '../core/core.module';
 
 @NgModule({
   declarations: [
@@ -66,27 +67,30 @@ import { ParticipationReportComponent } from './participation-report/participati
     CommonModule,
     FormsModule,
     RouterModule.forChild([
-      { path: '', component: AdminPageComponent, children: [
-        { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
-        { path: 'dashboard', component: DashboardComponent },
-        { path: 'designer/:id', component: GameEditorComponent },
-        { path: 'registrar/sponsors', component: SponsorBrowserComponent },
-        { path: 'registrar/users', component: UserRegistrarComponent },
-        { path: 'registrar/players', component: PlayerNamesComponent },
-        { path: 'registrar/:id', component: PlayerRegistrarComponent },
-        { path: 'observer/challenges/:id', component: ChallengeObserverComponent },
-        { path: 'observer/teams/:id', component: TeamObserverComponent },
-        { path: 'report', component: ReportPageComponent },
-        { path: 'report/users', component: UserReportComponent },
-        { path: 'report/sponsors', component: PlayerSponsorReportComponent },
-        { path: 'report/challenges', component: ChallengeReportComponent },
-        { path: 'report/feedback', component: FeedbackReportComponent },
-        { path: 'report/support', component: SupportReportComponent },
-        { path: 'report/participation', component: ParticipationReportComponent },
-        { path: 'support', component: ChallengeBrowserComponent }
-        // { path: '**', redirectTo: 'dashboard' }
-      ]},
+      {
+        path: '', component: AdminPageComponent, children: [
+          { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
+          { path: 'dashboard', component: DashboardComponent },
+          { path: 'designer/:id', component: GameEditorComponent },
+          { path: 'registrar/sponsors', component: SponsorBrowserComponent },
+          { path: 'registrar/users', component: UserRegistrarComponent },
+          { path: 'registrar/players', component: PlayerNamesComponent },
+          { path: 'registrar/:id', component: PlayerRegistrarComponent },
+          { path: 'observer/challenges/:id', component: ChallengeObserverComponent },
+          { path: 'observer/teams/:id', component: TeamObserverComponent },
+          { path: 'report', component: ReportPageComponent },
+          { path: 'report/users', component: UserReportComponent },
+          { path: 'report/sponsors', component: PlayerSponsorReportComponent },
+          { path: 'report/challenges', component: ChallengeReportComponent },
+          { path: 'report/feedback', component: FeedbackReportComponent },
+          { path: 'report/support', component: SupportReportComponent },
+          { path: 'report/participation', component: ParticipationReportComponent },
+          { path: 'support', component: ChallengeBrowserComponent }
+          // { path: '**', redirectTo: 'dashboard' }
+        ]
+      },
     ]),
+    CoreModule,
     ApiModule,
     UtilityModule,
     FontAwesomeModule,
