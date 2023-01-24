@@ -113,19 +113,19 @@
   </div>
 
   <div *ngFor="let player of ctx.players; trackBy:trackById"
-    class="d-flex mb-1 mx-2 p-2 flex-wrap align-items-baseline rounded" [class.bg-secondary]="!player.checked"
+    class="d-flex mb-1 mx-2 p-2 flex-wrap align-items-center rounded" [class.bg-secondary]="!player.checked"
     [class.pop-success]="player.checked">
     <div class="mx-2">
       <button class="btn btn-secondary btn-sm" (click)="toggleSelected(player)">
         <fa-icon [icon]="player.checked ? faChecked : faUnChecked"></fa-icon>
       </button>
     </div>
-    <div>
-      <app-player-avatar [sponsorLogoUri]="player.sponsorLogo"></app-player-avatar>
+    <app-player-avatar-list [sponsorUris]="player.sponsorList"></app-player-avatar-list>
+    <div class="ml-2">
       <span *ngIf="player.advanced" class="text-success ml-2">
         <fa-icon [icon]="faStar"></fa-icon>
       </span>
-      <span class="mx-2">{{player.approvedName}}</span>
+      <span>{{player.approvedName}}</span>
       <span class="text-muted">{{player.pendingName}}</span><br />
       <small class="text-muted">
         <span>player: </span>&nbsp;

@@ -3,9 +3,9 @@
 
 import { Component, OnInit } from '@angular/core';
 import { faSearch, faFilter, faCheck, faArrowLeft, faTimes, faUndo } from '@fortawesome/free-solid-svg-icons';
-import { asyncScheduler, BehaviorSubject, combineLatest, interval, Observable, scheduled, timer } from 'rxjs';
-import { debounceTime, map, mergeAll, switchMap, tap } from 'rxjs/operators';
-import { Player, PlayerSearch, TimeWindow } from '../../api/player-models';
+import { BehaviorSubject, combineLatest, interval, Observable, scheduled, timer } from 'rxjs';
+import { debounceTime, switchMap, tap } from 'rxjs/operators';
+import { Player, PlayerSearch } from '../../api/player-models';
 import { PlayerService } from '../../api/player.service';
 
 @Component({
@@ -19,7 +19,7 @@ export class PlayerNamesComponent implements OnInit {
   source: Player[] = [];
   viewed: Player | undefined = undefined;
   viewChange$ = new BehaviorSubject<Player | undefined>(this.viewed);
-  search: PlayerSearch = { term: '', take: 200, filter: ['collapse'], sort: 'time'};
+  search: PlayerSearch = { term: '', take: 200, filter: ['collapse'], sort: 'time' };
   count = 0;
   filter = '';
   teamView = 'collapse';
@@ -58,7 +58,7 @@ export class PlayerNamesComponent implements OnInit {
 
   toggleFilter(role: string): void {
     this.filter = this.filter !== role ? role : '';
-    if (!!this.filter){
+    if (!!this.filter) {
       this.search.filter = [this.teamView, this.filter];
     } else {
       this.search.filter = [this.teamView];
@@ -108,5 +108,4 @@ export class PlayerNamesComponent implements OnInit {
   trackById(index: number, model: Player): string {
     return model.id;
   }
-
 }

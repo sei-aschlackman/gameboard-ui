@@ -1,9 +1,27 @@
-.player-avatar-component {
-    display: inline-block;
-    aspect-ratio: 1 / 1;
-    width: 2rem;
+$radius: 2rem;
+$width: $radius * 2;
 
-    object-fit: contain;
-    border: dashed 1px white;
+// not sure why, but using the hard radius causes clip-path to look subtly wrong
+$adjustedRadius: calc($radius + 2px);
+
+:host {
+    display: block;
+    clip-path: circle(50% at 50% 50%);
+
+    border: dashed 1px #dadada;
     border-radius: 50%;
+}
+
+.player-avatar-component {
+    display: flex;
+}
+
+.avatar-container {
+    background: no-repeat center center;
+    background-size: contain;
+    flex: 0 0;
+    height: $width;
+    min-width: $width;
+    width: $width;
+    object-fit: contain;
 }

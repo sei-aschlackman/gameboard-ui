@@ -4,13 +4,11 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { map, tap } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 import { ConfigService } from '../utility/config.service';
 import { ChangedPlayer, NewPlayer, Player, PlayerCertificate, PlayerEnlistment, SessionChangeRequest, Standing, Team, TeamAdvancement, TeamInvitation, TeamSummary, TimeWindow } from './player-models';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class PlayerService {
   url = '';
 
@@ -22,13 +20,14 @@ export class PlayerService {
   }
 
   public list(search: any): Observable<Player[]> {
-    return this.http.get<Player[]>(this.url + '/players', {params: search}).pipe(
+    return this.http.get<Player[]>(this.url + '/players', { params: search }).pipe(
       map(r => {
-        r.forEach(p => this.transform(p));
+        r.forEach(p => p = this.transform(p));
         return r;
       })
     );
   }
+
   public retrieve(id: string): Observable<Player> {
     return this.http.get<Player>(`${this.url}/player/${id}`).pipe(
       map(p => this.transform(p) as Player)
@@ -62,7 +61,7 @@ export class PlayerService {
     );
   }
   public scores(search: any): Observable<Standing[]> {
-    return this.http.get<Standing[]>(this.url + '/scores', {params: search}).pipe(
+    return this.http.get<Standing[]>(this.url + '/scores', { params: search }).pipe(
       map(r => {
         r.forEach(s => this.transformStanding(s));
         return r;
@@ -74,10 +73,7 @@ export class PlayerService {
   }
   public getTeams(id: string): Observable<TeamSummary[]> {
     return this.http.get<TeamSummary[]>(`${this.url}/teams/${id}`).pipe(
-      map(r => {
-        r.forEach(s => this.transformSponsor(s));
-        return r;
-      })
+      map(result => result.map(t => this.transformSponsor(t)))
     );
   }
   public advanceTeams(model: TeamAdvancement): Observable<any> {
@@ -94,10 +90,8 @@ export class PlayerService {
   }
 
   public transform(p: Player, disallowedName: string | null = null): Player {
-    p.sponsorLogo = p.sponsor
-      ? `${this.config.imagehost}/${p.sponsor}`
-      : `${this.config.basehref}assets/sponsor.svg`
-    ;
+    p.sponsorLogo = this.transformSponsorUrl(p.sponsor);
+    p.sponsorList = p.sponsorList.map(s => this.transformSponsorUrl(s));
 
     // If the user has no name status but they changed their name, it's pending approval
     if (!p.nameStatus && p.approvedName !== p.name) {
@@ -111,7 +105,7 @@ export class PlayerService {
     p.pendingName = p.approvedName !== p.name
       ? p.name + (!!p.nameStatus ? `...${p.nameStatus}` : '...pending')
       : ''
-    ;
+      ;
 
     p.session = new TimeWindow(p.sessionBegin, p.sessionEnd);
 
@@ -122,17 +116,18 @@ export class PlayerService {
     p.sponsorLogo = p.sponsor
       ? `${this.config.imagehost}/${p.sponsor}`
       : `${this.config.basehref}assets/sponsor.svg`
-    ;
+      ;
     p.sponsorTooltip = p.sponsorList.map(s => s.split('.').reverse().pop()?.toUpperCase()).join(' | ');
-    p.sponsorList.forEach((s,i,a) => a[i] = `${this.config.imagehost}/${s}`);
+    p.sponsorList.forEach((s, i, a) => a[i] = `${this.config.imagehost}/${s}`);
     p.session = new TimeWindow(p.sessionBegin, p.sessionEnd);
     return p;
   }
 
-  private transformSponsor(p: any): any {
-    p.sponsorLogo = p.sponsor
-      ? `${this.config.imagehost}/${p.sponsor}`
-      : `${this.config.basehref}assets/sponsor.svg`
-    ;
+  private transformSponsor<T extends { sponsorLogo: string, sponsor: string }>(p: T): T {
+    p.sponsorLogo = this.transformSponsorUrl(p.sponsor);
+    return p;
   }
+
+  private transformSponsorUrl = (sponsor: string): string =>
+    sponsor ? `${this.config.imagehost}/${sponsor}` : `${this.config.basehref}assets/sponsor.svg`;
 }
