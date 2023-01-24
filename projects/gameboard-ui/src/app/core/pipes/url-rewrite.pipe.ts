@@ -7,7 +7,7 @@ export class UrlRewritePipe implements PipeTransform {
     const finalInput = this.chopSlash(value);
     const finalOrigin = this.appendSlash(origin);
 
-    return `${finalOrigin}${finalInput}`;
+    return encodeURI(`${finalOrigin}${finalInput}`);
   }
 
   appendSlash(uriBase: string): string {
