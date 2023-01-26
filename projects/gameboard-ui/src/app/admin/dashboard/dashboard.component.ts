@@ -9,7 +9,7 @@ import { debounceTime, switchMap, tap, mergeMap } from 'rxjs/operators';
 import { Game, NewGame } from '../../api/game-models';
 import { GameService } from '../../api/game.service';
 import { Search } from '../../api/models';
-import { ClipboardService } from '../../utility/clipboard.service';
+import { ClipboardService } from '../../utility/services/clipboard.service';
 import * as YAML from 'yaml';
 
 @Component({
@@ -46,12 +46,12 @@ export class DashboardComponent implements OnInit {
   faGlobe = faGlobeAmericas; // published game
   faUser = faUser; // individual game
   faTeam = faUsers; // team game
-  faUndo = faUndo; // allow reset 
+  faUndo = faUndo; // allow reset
   faLock = faLock; // don't allow reset
   faChartBar = faChartBar; // has feedback configured
   faCommentSlash = faCommentSlash; // doesn't have feedback configured
 
-  constructor(
+  constructor (
     private api: GameService,
     private clipboard: ClipboardService,
     private router: Router,
@@ -77,7 +77,7 @@ export class DashboardComponent implements OnInit {
   }
 
   create(): void {
-    this.creating$.next({name: 'NewGame'} as Game);
+    this.creating$.next({ name: 'NewGame' } as Game);
   }
 
   delete(game: Game): void {
@@ -103,7 +103,7 @@ export class DashboardComponent implements OnInit {
   }
 
   clone(game: Game): void {
-    this.creating$.next({...game, name: `${game.name}_CLONE`, isPublished: false, isClone: true});
+    this.creating$.next({ ...game, name: `${game.name}_CLONE`, isPublished: false, isClone: true });
   }
 
   yaml(game: Game): void {
@@ -133,7 +133,7 @@ export class DashboardComponent implements OnInit {
       const fr = new FileReader();
       fr.onload = ev => {
         const model = YAML.parse(fr.result as string) as Game[];
-        model.forEach(m => this.creating$.next({...m, isClone: true}));
+        model.forEach(m => this.creating$.next({ ...m, isClone: true }));
       }
       if (file.size < 8192) {
         fr.readAsText(file);

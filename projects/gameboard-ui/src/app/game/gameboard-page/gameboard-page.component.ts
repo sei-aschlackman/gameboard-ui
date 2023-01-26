@@ -40,7 +40,7 @@ export class GameboardPageComponent implements OnDestroy {
   hubstate$: Observable<HubState>;
   hubsub: Subscription;
 
-  constructor (
+  constructor(
     route: ActivatedRoute,
     private router: Router,
     private api: BoardService,

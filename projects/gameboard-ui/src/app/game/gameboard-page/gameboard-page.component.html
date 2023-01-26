@@ -15,8 +15,9 @@
         <!-- <span *ngIf="game.isBefore">Game window opens in </span> -->
         <span *ngIf="ctx.session.isAfter">Game Over </span>
         <span *ngIf="ctx.session.isDuring">Time Remaining: </span>
-        <span class="font-weight-bold" [class]="ctx.session.countdown | countdowncolor">{{ctx.session.countdown |
-          countdown}}</span>
+        <span class="font-weight-bold" [class]="ctx.session.countdown | countdowncolor">
+          {{ctx.session.countdown | countdown}}
+        </span>
       </div>
       <table class="table mt-2 text-center">
         <tbody>
@@ -106,29 +107,37 @@
               </div>
             </div>
 
-            <markdown [data]="spec.instance!.state.markdown ||''"></markdown>
+            <markdown [data]="spec.instance!.state.markdown || '' | relativeUrls:ctx.challengeDocUrl"></markdown>
 
             <markdown *ngIf="spec.instance?.state?.challenge" [data]="spec.instance!.state.challenge.text || ''">
             </markdown>
 
             <ng-container *ngIf="!!spec.instance!.state && spec.instance!.state.isActive">
               <h3>Gamespace Resources</h3>
-              <div *ngIf="!deploying && ctx.session.isDuring" class="d-flex my-4">
-                <button *ngFor="let vm of spec.instance!.state.vms" class="btn btn-sm btn-dark mr-2"
-                  (click)="console(vm)">
-                  <fa-icon [icon]="faTv"></fa-icon>
-                  <span>{{vm.name}}</span>
-                </button>
-                <app-confirm-button *ngIf="spec.instance!.state.vms?.length" btnClass="btn btn-sm btn-outline-warning"
-                  (confirm)="stop(spec)">
-                  <fa-icon [icon]="faTrash"></fa-icon>
-                  <span>Destroy</span>
-                </app-confirm-button>
-                <app-confirm-button *ngIf="!spec.instance!.state.vms?.length" btnClass="btn btn-sm btn-outline-warning"
-                  (confirm)="start(spec)">
-                  <fa-icon [icon]="faBolt"></fa-icon>
-                  <span>Deploy</span>
-                </app-confirm-button>
+              <div *ngIf="!deploying && ctx.session.isDuring">
+                <div class="vms-container my-4">
+                  <ul class="d-flex">
+                    <li *ngFor="let vm of spec.instance!.state.vms">
+                      <button class="btn btn-sm btn-dark mr-2" (click)="console(vm)">
+                        <fa-icon [icon]="faTv"></fa-icon>
+                        <span>{{vm.name}}</span>
+                      </button>
+                    </li>
+                  </ul>
+                </div>
+
+                <div class="vm-controls-container my-4">
+                  <app-confirm-button *ngIf="spec.instance!.state.vms?.length" btnClass="btn btn-sm btn-outline-warning"
+                    (confirm)="stop(spec)">
+                    <fa-icon [icon]="faTrash"></fa-icon>
+                    <span>Destroy</span>
+                  </app-confirm-button>
+                  <app-confirm-button *ngIf="!spec.instance!.state.vms?.length"
+                    btnClass="btn btn-sm btn-outline-warning" (confirm)="start(spec)">
+                    <fa-icon [icon]="faBolt"></fa-icon>
+                    <span>Deploy</span>
+                  </app-confirm-button>
+                </div>
               </div>
               <div *ngIf="deploying" class="text-center">
                 <app-spinner></app-spinner>
@@ -138,7 +147,7 @@
             <h3 *ngIf="spec.instance!.state.challenge?.questions?.length">Challenge Questions</h3>
             <app-gamespace-quiz [spec]="spec!" [session]="ctx.session" (graded)="graded()"></app-gamespace-quiz>
 
-            <div *ngIf="spec.instance?.id" class="text-right m-4 ">
+            <div *ngIf="spec.instance?.id" class="text-right m-4">
               <div class="mb-1">
                 Need Challenge Support?
                 <span class="m-2 p-2">
@@ -153,7 +162,6 @@
                 <app-clipspan class="text-info m-2 p-2">{{spec.instance?.id | slice:0:8}} {{spec.tag}}</app-clipspan>
               </div>
             </div>
-
 
             <div *ngIf="spec.instance!.state.challenge && ctx.game.feedbackTemplate?.challenge?.length">
               <app-feedback-form [spec]="spec!" [specs$]="specs$" [game]="ctx.game" [session]="ctx.session"

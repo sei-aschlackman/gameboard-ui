@@ -9,7 +9,6 @@ import { HttpInterceptorService } from './http-interceptor.service';
 import { RouterModule } from '@angular/router';
 import { SpacesPipe } from './spaces.pipe';
 import { ConsoleComponent } from './console/console.component';
-import { ClipboardService } from './clipboard.service';
 import { FormsModule } from '@angular/forms';
 import { MarkdownModule } from 'ngx-markdown';
 import { SpinnerComponent } from './spinner/spinner.component';
@@ -29,7 +28,6 @@ import { SpinnerComponent } from './spinner/spinner.component';
     MarkdownModule.forRoot()
   ],
   providers: [
-    ClipboardService,
     {
       provide: HTTP_INTERCEPTORS,
       useClass: HttpInterceptorService,

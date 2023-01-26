@@ -1,9 +1,9 @@
 // Copyright 2021 Carnegie Mellon University. All Rights Reserved.
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { faTrash, faList, faSearch, faFilter, faCheck, faArrowLeft, faLongArrowAltDown, faCheckSquare, faSquare, faClipboard, faCertificate, faStar, faSyncAlt, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
+import { faTrash, faList, faSearch, faFilter, faCheck, faArrowLeft, faLongArrowAltDown, faCheckSquare, faSquare, faClipboard, faStar, faSyncAlt, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
 import { asyncScheduler, BehaviorSubject, combineLatest, iif, interval, Observable, of, scheduled, timer } from 'rxjs';
 import { debounceTime, filter, map, mergeAll, switchMap, tap } from 'rxjs/operators';
 import { BoardService } from '../../api/board.service';
@@ -12,14 +12,14 @@ import { GameService } from '../../api/game.service';
 import { Player, PlayerSearch, TimeWindow } from '../../api/player-models';
 import { PlayerService } from '../../api/player.service';
 import { UnityService } from '../../unity/unity.service';
-import { ClipboardService } from '../../utility/clipboard.service';
+import { ClipboardService } from '../../utility/services/clipboard.service';
 
 @Component({
   selector: 'app-player-registrar',
   templateUrl: './player-registrar.component.html',
   styleUrls: ['./player-registrar.component.scss']
 })
-export class PlayerRegistrarComponent implements OnInit {
+export class PlayerRegistrarComponent {
   refresh$ = new BehaviorSubject<boolean>(true);
   game!: Game;
   ctx$: Observable<{ game: Game, futures: Game[], players: Player[] }>;
@@ -51,7 +51,7 @@ export class PlayerRegistrarComponent implements OnInit {
   faStar = faStar;
   faSync = faSyncAlt;
 
-  constructor (
+  constructor(
     route: ActivatedRoute,
     private gameapi: GameService,
     private api: PlayerService,
@@ -97,9 +97,6 @@ export class PlayerRegistrarComponent implements OnInit {
     ]).pipe(
       map(([game, players, futures]) => ({ game, players, futures }))
     );
-  }
-
-  ngOnInit(): void {
   }
 
   toggleFilter(role: string): void {

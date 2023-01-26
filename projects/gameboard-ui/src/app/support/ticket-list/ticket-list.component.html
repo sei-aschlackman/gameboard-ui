@@ -1,12 +1,12 @@
 <div *ngIf="ctx$ | async as ctx; else loading" class="container-xl" [class.expand]="ctx.canManage">
-
   <div class="d-flex justify-content-between mb-2">
     <h3 class="m-0 p-0 align-self-center">{{ctx.canManage ? 'Manage Tickets' : 'My Tickets'}}</h3>
     <a class="btn btn-outline-info" [routerLink]="['../create']">
       <span>Create Ticket</span>
     </a>
   </div>
-  <div class="row mb-2">
+
+  <div class="filters row mb-2">
     <div class="d-flex" [class]="ctx.canManage ? 'col-7' : 'col-2'">
       <div class="input-group input-group-sm mr-2 w-25">
         <select class="form-control" [(ngModel)]="statusFilter" (change)="this.refresh$.next(true)">
@@ -19,7 +19,8 @@
           <option *ngFor="let option of ['Any', 'Assigned to me', 'Unassigned']" [value]="option">{{option}}</option>
         </select>
       </div>
-      <button *ngIf="ctx.canManage" class="btn btn-outline-info btn-sm mx-1 mr-2" (click)="downloadTicketDetailReport()" [disabled]="!ctx.canManage">
+      <button *ngIf="ctx.canManage" class="btn btn-outline-info btn-sm mx-1 mr-2" (click)="downloadTicketDetailReport()"
+        [disabled]="!ctx.canManage">
         <fa-icon [icon]="faFileDownload"></fa-icon>
         <span>csv</span>
       </button>
@@ -47,6 +48,7 @@
         <fa-icon class="m-0 p-1" [icon]="faCaretUp" [hidden]="isDescending || curOrderItem != 'key'"></fa-icon>
       </span>
     </div>
+
     <!-- Summary column with ordering -->
     <div class="col-5" (click)="orderByColumn('summary')" (mouseover)="showHoverCaret=true; hoverOrderItem='summary'"
       (mouseout)="showHoverCaret=false; hoverOrderItem=curOrderItem">
@@ -58,8 +60,9 @@
         <fa-icon class="m-0 p-1" [icon]="faCaretUp" [hidden]="isDescending || curOrderItem != 'summary'"></fa-icon>
       </span>
     </div>
+
     <!-- Status column with ordering -->
-    <div class="col-2" (click)="orderByColumn('status')" (mouseover)="showHoverCaret=true; hoverOrderItem='status'"
+    <div class="col-3" (click)="orderByColumn('status')" (mouseover)="showHoverCaret=true; hoverOrderItem='status'"
       (mouseout)="showHoverCaret=false; hoverOrderItem=curOrderItem">
       <span class="m-0 p-1">Status{{ctx.canManage ? ' / Assignee' : ''}}</span>
       <span class="m-0 p-1" [hidden]="curOrderItem != 'status' && hoverOrderItem != 'status'">
@@ -69,9 +72,10 @@
         <fa-icon class="m-0 p-1" [icon]="faCaretUp" [hidden]="isDescending || curOrderItem != 'status'"></fa-icon>
       </span>
     </div>
+
     <!-- Created column with ordering -->
-    <div class="col-2 text-right" (click)="orderByColumn('created')"
-      (mouseover)="showHoverCaret=true; hoverOrderItem='created'"
+    <div class="text-right" [class.col-1]="ctx.canManage" [class.col-2]="!ctx.canManage"
+      (click)="orderByColumn('created')" (mouseover)="showHoverCaret=true; hoverOrderItem='created'"
       (mouseout)="showHoverCaret=false; hoverOrderItem=curOrderItem">
       <span class="m-0 p-1">Created</span>
       <span class="m-0 p-1" [hidden]="curOrderItem != 'created' && hoverOrderItem != 'created'">
@@ -81,8 +85,9 @@
         <fa-icon class="m-0 p-1" [icon]="faCaretUp" [hidden]="isDescending || curOrderItem != 'created'"></fa-icon>
       </span>
     </div>
+
     <!-- Updated column with ordering -->
-    <div class="col-2 text-right" (click)="orderByColumn('updated')"
+    <div class="col-1 text-right" (click)="orderByColumn('updated')"
       (mouseover)="showHoverCaret=true; hoverOrderItem='updated'"
       (mouseout)="showHoverCaret=false; hoverOrderItem=curOrderItem">
       <span class="m-0 p-1">Updated</span>
@@ -92,6 +97,11 @@
         </fa-icon>
         <fa-icon class="m-0 p-1" [icon]="faCaretUp" [hidden]="isDescending || curOrderItem != 'updated'"></fa-icon>
       </span>
+    </div>
+
+    <!-- Actions (managers only)-->
+    <div *ngIf="ctx.canManage" class="col-1">
+      <!--I feel like this looks best without a header - it's clear what it is -->
     </div>
   </div>
 
@@ -134,11 +144,19 @@
           </ng-container>
         </div>
       </div>
-      <div class="col-3 align-self-center d-flex text-right flex-column justify-content-between">
-        <span>{{ ticket.created | shorttime }}</span>
+      <div class="align-self-center d-flex text-right flex-column justify-content-between" [class.col-2]="ctx.canManage"
+        [class.col-3]="!ctx.canManage">
+        <div class="created-date">{{ ticket.created | shortdate }}</div>
+        <div class="created-time">{{ ticket.created | friendlyTime }}</div>
       </div>
       <div class="col-1 align-self-center d-flex text-right flex-column justify-content-between">
         <span>{{ticket.lastUpdated | ago}}</span>
+      </div>
+
+      <div *ngIf="ctx.canManage" class="col-1">
+        <button class="btn btn-secondary" (click)="copyMarkdown(ticket)">
+          <fa-icon [icon]="faService.faClipboard"></fa-icon>
+        </button>
       </div>
     </div>
   </div>

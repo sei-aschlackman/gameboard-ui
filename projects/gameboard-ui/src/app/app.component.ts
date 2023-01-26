@@ -2,13 +2,14 @@
 // Released under a MIT (SEI)-style license. See LICENSE.md in the project root for license information.
 
 import { DOCUMENT } from '@angular/common';
-import { Component, Inject } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { Title } from '@angular/platform-browser';
-import { Observable } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { TocFile, TocService } from './api/toc.service';
 import { ApiUser } from './api/user-models';
 import { ConfigService } from './utility/config.service';
 import { LayoutService } from './utility/layout.service';
+import { ClipboardService } from './utility/services/clipboard.service';
 import { UserService } from './utility/user.service';
 
 @Component({

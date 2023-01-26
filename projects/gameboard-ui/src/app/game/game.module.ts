@@ -29,6 +29,7 @@ import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
 import { UnityModule } from '../unity/unity.module';
 import { UnityBoardComponent } from '../unity/unity-board/unity-board.component';
 import { GameHubStatusComponent } from './game-hub-status/game-hub-status.component';
+import { CoreModule } from '../core/core.module';
 
 
 @NgModule({
@@ -61,6 +62,7 @@ import { GameHubStatusComponent } from './game-hub-status/game-hub-status.compon
       { path: 'scores/:id', component: ScoreboardPageComponent },
       { path: ':id', component: GamePageComponent, children: [] }
     ]),
+    CoreModule,
     UtilityModule,
     FontAwesomeModule,
     AlertModule,

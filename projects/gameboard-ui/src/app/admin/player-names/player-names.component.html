@@ -17,7 +17,8 @@
           <span>Search</span>
         </span>
       </div>
-      <input type="search" [(ngModel)]="search.term" placeholder="term" class="form-control" (input)="refresh$.next(true)">
+      <input type="search" [(ngModel)]="search.term" placeholder="term" class="form-control"
+        (input)="refresh$.next(true)">
     </div>
     <div>
       <button class="mr-1 btn btn-link text-warning btn-sm" (click)="toggleFilter('pending')">
@@ -31,33 +32,38 @@
     </div>
   </div>
 
-  <small *ngIf="players.length === search.take" class="text-warning">Results limited to {{search.take}}. Refine search term if necessary.</small>
-  <hr/>
+  <small *ngIf="players.length === search.take" class="text-warning">Results limited to {{search.take}}. Refine search
+    term if necessary.</small>
+  <hr />
 
   <small class="text-warning mx-2">count: {{players.length}}</small>
 
   <div *ngFor="let player of players; trackBy:trackById"
-    class="d-flex mb-1 mx-2 p-2 flex-wrap align-items-baseline rounded">
-    <div class="">
-      <img [src]="player.sponsorLogo" [alt]="player.sponsor" width="48px">
-      <span class="mx-2">{{player.approvedName}}</span>
-      <span class="text-muted">{{player.pendingName}}</span><br/>
-      <small class="text-muted">
-        <span>{{player.gameName}}</span> &mdash;
-        <span>user: </span>&nbsp;<span>{{player.userApprovedName}}</span>&nbsp;
-        <span>player: </span>&nbsp;
-        <app-clipspan class="mr-2">{{player.id | slice:0:8}}</app-clipspan>
-        <span>team: </span>&nbsp;
-        <app-clipspan class="mr-2">{{player.teamId | slice:0:8}}</app-clipspan>
-        <span>game: </span>&nbsp;
-        <app-clipspan class="mr-2">{{player.gameId | slice:0:8}}</app-clipspan>
-      </small>
+    class="d-flex mb-1 mx-2 p-2 flex-wrap align-items-center rounded">
+    <app-player-avatar-list [sponsorUris]="player.sponsorList"></app-player-avatar-list>
+    <div>
+      <div class="player-info">
+        <span class="mx-2">{{player.approvedName}}</span>
+        <span class="text-muted">{{player.pendingName}}</span><br />
+        <small class="text-muted">
+          <span>{{player.gameName}}</span> &mdash;
+          <span>user: </span>&nbsp;<span>{{player.userApprovedName}}</span>&nbsp;
+          <span>player: </span>&nbsp;
+          <app-clipspan class="mr-2">{{player.id | slice:0:8}}</app-clipspan>
+          <span>team: </span>&nbsp;
+          <app-clipspan class="mr-2">{{player.teamId | slice:0:8}}</app-clipspan>
+          <span>game: </span>&nbsp;
+          <app-clipspan class="mr-2">{{player.gameId | slice:0:8}}</app-clipspan>
+        </small>
+      </div>
     </div>
-    <button *ngIf="player.name!==player.approvedName" class="btn btn-outline-info btn-sm mx-1" (click)="approveName(player)">
+    <button *ngIf="player.name!==player.approvedName" class="btn btn-outline-info btn-sm mx-1"
+      (click)="approveName(player)">
       <fa-icon [icon]="faCheck"></fa-icon>
       <span>Approve</span>
     </button>
-    <button *ngIf="player.name!==player.approvedName" class="btn btn-outline-info btn-sm mx-1" (click)="resetName(player)">
+    <button *ngIf="player.name!==player.approvedName" class="btn btn-outline-info btn-sm mx-1"
+      (click)="resetName(player)">
       <fa-icon [icon]="faUndo"></fa-icon>
       <span>Reset</span>
     </button>
@@ -67,18 +73,20 @@
     </button>
     <div class="spacer"></div>
     <div *ngIf="viewed === player" class="col-12">
-        <div class="form-group">
-          <label class="mb-0" for="name-input">Approved Name</label>
-          <input id="name-input" class="form-control" type="text" [(ngModel)]="player.approvedName" (change)="update(player)">
-          <small></small>
-        </div>
-        <div class="form-group">
-          <label class="mb-0" for="reason-input">Disapproved Reason</label>
-          <input id="reason-input" class="form-control" type="text" [(ngModel)]="player.nameStatus" (change)="update(player)">
-          <small> <button *ngFor="let reason of reasons" class="btn btn-link btn-sm" (click)="setStatus(player, reason)">
+      <div class="form-group">
+        <label class="mb-0" for="name-input">Approved Name</label>
+        <input id="name-input" class="form-control" type="text" [(ngModel)]="player.approvedName"
+          (change)="update(player)">
+        <small></small>
+      </div>
+      <div class="form-group">
+        <label class="mb-0" for="reason-input">Disapproved Reason</label>
+        <input id="reason-input" class="form-control" type="text" [(ngModel)]="player.nameStatus"
+          (change)="update(player)">
+        <small> <button *ngFor="let reason of reasons" class="btn btn-link btn-sm" (click)="setStatus(player, reason)">
             {{reason}}
           </button></small>
-        </div>
+      </div>
     </div>
   </div>
 </ng-container>

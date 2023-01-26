@@ -146,6 +146,7 @@ export interface BoardPlayer {
   session: TimeWindow;
   game: BoardGame;
   challenges: Challenge[];
+  challengeDocUrl: string;
 }
 
 export interface GameState {

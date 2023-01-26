@@ -1,13 +1,16 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { faCaretDown, faCaretUp, faCaretLeft, faCaretRight, faComments, faPaperclip, faSearch, faExclamationCircle, faFileDownload } from '@fortawesome/free-solid-svg-icons';
 import { BehaviorSubject, Observable, timer, combineLatest, Subscription } from 'rxjs';
-import { debounceTime, switchMap, map, tap } from 'rxjs/operators';
+import { debounceTime, switchMap, map, tap, first } from 'rxjs/operators';
 import { ReportService } from '../../api/report.service';
 import { TicketNotification, TicketSummary } from '../../api/support-models';
 import { SupportService } from '../../api/support.service';
 import { ConfigService } from '../../utility/config.service';
 import { NotificationService } from '../../utility/notification.service';
 import { UserService as LocalUserService } from '../../utility/user.service';
+import { ToastService } from '../../utility/services/toast.service';
+import { ClipboardService } from '../../utility/services/clipboard.service';
+import { FontAwesomeService } from '../../utility/services/font-awesome.service';
 
 @Component({
   selector: 'app-ticket-list',
@@ -38,15 +41,18 @@ export class TicketListComponent implements OnInit, OnDestroy {
   faCaretDown = faCaretDown;
   faCaretUp = faCaretUp;
   faCaretRight = faCaretRight;
-  faCaretLeft =faCaretLeft;
+  faCaretLeft = faCaretLeft;
   faNote = faExclamationCircle;
   faFileDownload = faFileDownload;
 
-  constructor(
+  constructor (
     private api: SupportService,
+    private clipboard: ClipboardService,
     private local: LocalUserService,
     private config: ConfigService,
     private reportApi: ReportService,
+    private toastService: ToastService,
+    public faService: FontAwesomeService,
     hub: NotificationService
   ) {
 
@@ -54,7 +60,7 @@ export class TicketListComponent implements OnInit, OnDestroy {
     this.statusFilter = config.local.ticketFilter || "Any Status";
     this.assignFilter = config.local.ticketType || "Any";
     this.curOrderItem = config.local.ticketOrder || "created";
-    this.isDescending = config.local.ticketOrderDesc|| true;
+    this.isDescending = config.local.ticketOrderDesc || true;
 
     const canManage$ = local.user$.pipe(
       map(u => !!u?.isObserver || !!u?.isSupport)
@@ -104,8 +110,8 @@ export class TicketListComponent implements OnInit, OnDestroy {
       })
     );
 
-    this.ctx$ = combineLatest([ ticket$, nextTicket$, canManage$]).pipe(
-      map(([tickets, nextTicket, canManage]) => ({tickets: tickets, nextTicket: nextTicket, canManage: canManage}))
+    this.ctx$ = combineLatest([ticket$, nextTicket$, canManage$]).pipe(
+      map(([tickets, nextTicket, canManage]) => ({ tickets: tickets, nextTicket: nextTicket, canManage: canManage }))
     );
 
     this.subs.push(
@@ -167,4 +173,13 @@ export class TicketListComponent implements OnInit, OnDestroy {
     this.reportApi.exportTicketDetails({ term: this.searchText, filter: [this.statusFilter.toLowerCase(), this.assignFilter.toLowerCase()] });
   }
 
+  async copyMarkdown(ticket: TicketSummary) {
+    this.api.retrieve(ticket.key).pipe(
+      first(),
+      switchMap(ticket => this.api.getTicketMarkdown(ticket)),
+    ).subscribe(async md => {
+      await this.clipboard.copy(md);
+      this.toastService.show({ text: "Copied ticket markdown", faIcon: this.faService.faClipboard })
+    });
+  }
 }

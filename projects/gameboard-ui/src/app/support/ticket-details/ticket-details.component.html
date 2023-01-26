@@ -23,8 +23,7 @@
       </div>
     </div>
     <div class="d-flex flex-wrap align-items-center mb-2">
-      <h4 class="m-0 p-0 mr-2"><span class="badge"
-          [class.badge-info]="ctx.ticket.status == 'Open' || !ctx.ticket.status"
+      <h4 class="m-0 p-0"><span class="badge" [class.badge-info]="ctx.ticket.status == 'Open' || !ctx.ticket.status"
           [class.badge-success]="ctx.ticket.status == 'In Progress'"
           [class.badge-dark]="ctx.ticket.status == 'Closed'">{{ctx.ticket.status}}</span>
       </h4>
@@ -45,6 +44,9 @@
           <span *ngIf="!ctx.canManage"> {{challenge?.name}} ({{(challenge?.id | slice:0:8)}} {{challenge?.tag}})</span>
         </span>
       </ng-container>
+      <div class="copy-button-container ml-auto">
+        <button type="button" class="btn btn-info btn-sm" (click)="copyToMarkdown(ctx.ticket)">Copy to markdown</button>
+      </div>
     </div>
 
     <div class="d-flex m-0 p-0">
@@ -66,7 +68,7 @@
             </div>
           </div>
           <div class="card-body">
-            <app-long-content-hider *ngIf="!editingContent">
+            <app-long-content-hider>
               <p class="card-text" [innerHtml]="ctx.ticket.description | linkifyHtml"></p>
             </app-long-content-hider>
             <ng-container *ngIf="editingContent && changedTicket && !!changedTicket?.id">
@@ -129,7 +131,10 @@
               </div>
             </div>
           </div>
+
         </div>
+
+
 
         <div *ngIf="!!ctx.ticket.activity" class="mx-md-4 mx-0">
           <div *ngFor="let activity of ctx.ticket.activity; let i = index;" class="border-dark1 border-top1 ">
@@ -150,7 +155,6 @@
                 <app-long-content-hider>
                   <p class="card-text" [innerHtml]="activity.message | linkifyHtml"></p>
                 </app-long-content-hider>
-
                 <div *ngIf="activity.attachmentFiles?.length" class="d-flex overflow-auto my-auto">
                   <ng-container *ngFor="let file of activity.attachmentFiles; let j = index;">
                     <div class="attachment m-2"
